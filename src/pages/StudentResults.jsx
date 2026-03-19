@@ -48,7 +48,7 @@ export default function StudentResults({ user }) {
             <tr key={result.id}>
               <td>{result.exam_title}</td>
               <td>{result.obtained_marks}/{result.total_marks}</td>
-              <td>{result.percentage.toFixed(2)}%</td>
+              <td>{(Number(result.percentage) || 0).toFixed(2)}%</td>
               <td>
                 <span className={`status-${result.status}`}>{result.status}</span>
               </td>
