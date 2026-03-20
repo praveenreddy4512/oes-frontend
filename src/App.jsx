@@ -7,6 +7,7 @@ import ProfessorDashboard from "./pages/ProfessorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentExams from "./pages/StudentExams";
 import StudentResults from "./pages/StudentResults";
+import StudentResult from "./pages/StudentResult";
 import StudentProfile from "./pages/StudentProfile";
 import ProfessorExams from "./pages/ProfessorExams";
 import ProfessorSubmissions from "./pages/ProfessorSubmissions";
@@ -88,6 +89,10 @@ export default function App() {
           <Route
             path="/student/results"
             element={user && user.role === "student" ? <StudentResults user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/student/result/:resultId"
+            element={user && user.role === "student" ? <StudentResult user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/student/profile"
