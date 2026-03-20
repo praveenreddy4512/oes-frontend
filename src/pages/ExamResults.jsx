@@ -5,7 +5,7 @@ import "../styles/pages.css";
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function ExamResults() {
-  const { examId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [exam, setExam] = useState(null);
   const [results, setResults] = useState([]);
@@ -14,21 +14,26 @@ export default function ExamResults() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
+    if (!id) {
+      setError("Exam ID is missing. Please access this page from the exams list.");
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [examId]);
+  }, [id]);
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       // Fetch exam details
-      const examRes = await fetch(`${apiUrl}/api/exams/${examId}`);
+      const examRes = await fetch(`${apiUrl}/api/exams/${id}`);
       if (!examRes.ok) throw new Error("Failed to load exam");
       const examData = await examRes.json();
       setExam(examData);
 
       // Fetch exam results
-      const resultsRes = await fetch(`${apiUrl}/api/results/exam/${examId}`);
+      const resultsRes = await fetch(`${apiUrl}/api/results/exam/${id}`);
       if (resultsRes.ok) {
         const resultsData = await resultsRes.json();
         setResults(resultsData);

@@ -14,6 +14,11 @@ export default function SubmissionGrading() {
   const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
+    if (!submissionId) {
+      setError("Submission ID is missing. Please access this page from the submissions list.");
+      setLoading(false);
+      return;
+    }
     fetchSubmissionData();
   }, [submissionId]);
 
@@ -23,7 +28,10 @@ export default function SubmissionGrading() {
     try {
       // Fetch submission details with answers
       const res = await fetch(`${apiUrl}/api/results/${submissionId}`);
-      if (!res.ok) throw new Error("Failed to load submission");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to load submission");
+      }
       const data = await res.json();
       setResult(data);
       setSubmission(data);
