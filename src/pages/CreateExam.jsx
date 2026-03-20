@@ -17,7 +17,7 @@ export default function CreateExam({ user }) {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "title" ? value : Number(value),
+      [name]: name === "duration_minutes" ? Number(value) : value,
     }));
   };
 

@@ -73,8 +73,11 @@ export default function ProfessorExams({ user }) {
               </td>
               <td>{new Date(exam.created_at).toLocaleDateString()}</td>
               <td>
-                <a href={`/professor/exam/${exam.id}/edit`} className="btn-link">
+                <a href={`/professor/exam/${exam.id}/edit`} className="btn-link" title="Edit exam details and questions">
                   Edit
+                </a>
+                <a href={`/professor/exam/${exam.id}/results`} className="btn-link" title="View exam results and submissions">
+                  Results
                 </a>
                 <button
                   onClick={() => handleDelete(exam.id)}
