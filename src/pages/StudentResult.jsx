@@ -27,7 +27,10 @@ export default function StudentResult({ user }) {
     try {
       // Fetch result details
       const resultRes = await fetch(`${apiUrl}/api/results/${resultId}`);
-      if (!resultRes.ok) throw new Error("Failed to load result");
+      if (!resultRes.ok) {
+        const errorData = await resultRes.json();
+        throw new Error(errorData.error || "Failed to load result");
+      }
       const resultData = await resultRes.json();
       setResult(resultData);
 
