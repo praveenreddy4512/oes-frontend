@@ -1,0 +1,323 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import "../styles/pages.css";
+
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+export default function ExamEditor() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [exam, setExam] = useState({
+    title: "",
+    description: "",
+    duration: 60,
+  });
+  const [questions, setQuestions] = useState([]);
+  const [newQuestion, setNewQuestion] = useState({
+    question_text: "",
+    option_a: "",
+    option_b: "",
+    option_c: "",
+    option_d: "",
+    correct_option: "A",
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    fetchExamData();
+  }, [id]);
+
+  const fetchExamData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const examRes = await fetch(`${apiUrl}/api/exams/${id}`);
+      if (!examRes.ok) throw new Error("Failed to load exam");
+      const examData = await examRes.json();
+      setExam(examData);
+
+      const questionsRes = await fetch(`${apiUrl}/api/questions?exam_id=${id}`);
+      if (questionsRes.ok) {
+        const questionsData = await questionsRes.json();
+        setQuestions(questionsData);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExamChange = (e) => {
+    const { name, value } = e.target;
+    setExam((prev) => ({
+      ...prev,
+      [name]: name === "duration" ? parseInt(value) : value,
+    }));
+  };
+
+  const handleUpdateExam = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch(`${apiUrl}/api/exams/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(exam),
+      });
+      if (!res.ok) throw new Error("Failed to update exam");
+      setSuccess("✅ Exam updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleAddQuestion = async (e) => {
+    e.preventDefault();
+    if (!newQuestion.question_text.trim()) {
+      setError("Question text is required");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch(`${apiUrl}/api/questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newQuestion,
+          exam_id: id,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to add question");
+      const addedQuestion = await res.json();
+      setQuestions((prev) => [...prev, addedQuestion]);
+      setNewQuestion({
+        question_text: "",
+        option_a: "",
+        option_b: "",
+        option_c: "",
+        option_d: "",
+        correct_option: "A",
+      });
+      setSuccess("✅ Question added!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId) => {
+    if (!confirm("Are you sure you want to delete this question?")) return;
+    setError("");
+    try {
+      const res = await fetch(`${apiUrl}/api/questions/${questionId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete question");
+      setQuestions((prev) => prev.filter((q) => q.id !== questionId));
+      setSuccess("✅ Question deleted!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  if (loading) return <div className="page-container"><p>Loading exam data...</p></div>;
+
+  return (
+    <div className="page-container">
+      <h1>Edit Exam</h1>
+
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
+
+      <form onSubmit={handleUpdateExam} className="form">
+        <h2>Exam Details</h2>
+        <div className="form-group">
+          <label>Title</label>
+          <input
+            type="text"
+            name="title"
+            value={exam.title}
+            onChange={handleExamChange}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={exam.description}
+            onChange={handleExamChange}
+            rows="4"
+          />
+        </div>
+        <div className="form-group">
+          <label>Duration (minutes)</label>
+          <input
+            type="number"
+            name="duration"
+            value={exam.duration}
+            onChange={handleExamChange}
+            min="1"
+            required
+          />
+        </div>
+        <button type="submit" className="btn-primary">
+          Update Exam
+        </button>
+      </form>
+
+      <hr />
+
+      <form onSubmit={handleAddQuestion} className="form">
+        <h2>Add New Question</h2>
+        <div className="form-group">
+          <label>Question</label>
+          <textarea
+            value={newQuestion.question_text}
+            onChange={(e) =>
+              setNewQuestion((prev) => ({
+                ...prev,
+                question_text: e.target.value,
+              }))
+            }
+            rows="3"
+            required
+          />
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Option A</label>
+            <input
+              type="text"
+              value={newQuestion.option_a}
+              onChange={(e) =>
+                setNewQuestion((prev) => ({
+                  ...prev,
+                  option_a: e.target.value,
+                }))
+              }
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Option B</label>
+            <input
+              type="text"
+              value={newQuestion.option_b}
+              onChange={(e) =>
+                setNewQuestion((prev) => ({
+                  ...prev,
+                  option_b: e.target.value,
+                }))
+              }
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Option C</label>
+            <input
+              type="text"
+              value={newQuestion.option_c}
+              onChange={(e) =>
+                setNewQuestion((prev) => ({
+                  ...prev,
+                  option_c: e.target.value,
+                }))
+              }
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Option D</label>
+            <input
+              type="text"
+              value={newQuestion.option_d}
+              onChange={(e) =>
+                setNewQuestion((prev) => ({
+                  ...prev,
+                  option_d: e.target.value,
+                }))
+              }
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Correct Answer</label>
+          <select
+            value={newQuestion.correct_option}
+            onChange={(e) =>
+              setNewQuestion((prev) => ({
+                ...prev,
+                correct_option: e.target.value,
+              }))
+            }
+          >
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+
+        <button type="submit" className="btn-primary">
+          Add Question
+        </button>
+      </form>
+
+      <hr />
+
+      <h2>Questions ({questions.length})</h2>
+      {questions.length === 0 ? (
+        <p className="no-data">No questions yet. Add one above.</p>
+      ) : (
+        <div className="questions-list">
+          {questions.map((q, idx) => (
+            <div key={q.id} className="question-card">
+              <h4>
+                Q{idx + 1}. {q.question_text}
+              </h4>
+              <ul>
+                <li className={q.correct_option === "A" ? "correct" : ""}>
+                  A) {q.option_a}
+                </li>
+                <li className={q.correct_option === "B" ? "correct" : ""}>
+                  B) {q.option_b}
+                </li>
+                <li className={q.correct_option === "C" ? "correct" : ""}>
+                  C) {q.option_c}
+                </li>
+                <li className={q.correct_option === "D" ? "correct" : ""}>
+                  D) {q.option_d}
+                </li>
+              </ul>
+              <button
+                type="button"
+                onClick={() => handleDeleteQuestion(q.id)}
+                className="btn-danger"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button onClick={() => navigate("/professor/exams")} className="btn-secondary">
+        Back to Exams
+      </button>
+    </div>
+  );
+}

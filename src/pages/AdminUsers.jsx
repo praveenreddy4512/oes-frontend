@@ -7,7 +7,9 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [newUser, setNewUser] = useState({
     username: "",
     password: "",
@@ -35,33 +37,72 @@ export default function AdminUsers() {
 
   const handleAddUser = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
     try {
-      const res = await fetch(`${apiUrl}/api/users`, {
-        method: "POST",
+      const url = editingUser
+        ? `${apiUrl}/api/users/${editingUser.id}`
+        : `${apiUrl}/api/users`;
+      const method = editingUser ? "PUT" : "POST";
+      const body = editingUser
+        ? { username: newUser.username, email: newUser.email, role: newUser.role }
+        : newUser;
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Failed to create user");
+      if (!res.ok) throw new Error("Failed to save user");
 
-      alert("User created successfully!");
+      setSuccess(
+        editingUser ? "✅ User updated successfully!" : "✅ User created successfully!"
+      );
       setNewUser({ username: "", password: "", role: "student", email: "" });
+      setEditingUser(null);
       setShowForm(false);
       fetchUsers();
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Error: " + err.message);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleEditUser = (user) => {
+    setEditingUser(user);
+    setNewUser({
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      password: "",
+    });
+    setShowForm(true);
+  };
+
   const handleDeleteUser = async (userId) => {
-    if (!confirm("Are you sure?")) return;
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    setError("");
     try {
-      await fetch(`${apiUrl}/api/users/${userId}`, { method: "DELETE" });
-      alert("User deleted!");
+      const res = await fetch(`${apiUrl}/api/users/${userId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete user");
+      setSuccess("✅ User deleted!");
       fetchUsers();
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      alert("Error: " + err.message);
+      setError(err.message);
     }
+  };
+
+  const cancelEdit = () => {
+    setEditingUser(null);
+    setNewUser({ username: "", password: "", role: "student", email: "" });
+    setShowForm(false);
   };
 
   return (
@@ -71,8 +112,12 @@ export default function AdminUsers() {
         {showForm ? "Cancel" : "+ Add User"}
       </button>
 
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
+
       {showForm && (
         <form className="exam-form" onSubmit={handleAddUser}>
+          <h2>{editingUser ? "Edit User" : "Create New User"}</h2>
           <div className="form-group">
             <label>Username</label>
             <input
@@ -82,19 +127,22 @@ export default function AdminUsers() {
                 setNewUser({ ...newUser, username: e.target.value })
               }
               required
+              disabled={editingUser ? true : false}
             />
           </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={newUser.password}
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
-              }
-              required
-            />
-          </div>
+          {!editingUser && (
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                value={newUser.password}
+                onChange={(e) =>
+                  setNewUser({ ...newUser, password: e.target.value })
+                }
+                required
+              />
+            </div>
+          )}
           <div className="form-group">
             <label>Email</label>
             <input
@@ -114,14 +162,23 @@ export default function AdminUsers() {
               <option value="admin">Admin</option>
             </select>
           </div>
-          <button type="submit" className="btn-primary">
-            Create User
-          </button>
+          <div className="button-group">
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Saving..." : editingUser ? "Update User" : "Create User"}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={cancelEdit}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       )}
 
-      {error && <p className="error">{error}</p>}
-      {loading && <p>Loading users...</p>}
+      {loading && !showForm && <p>Loading users...</p>}
 
       <table className="users-table">
         <thead>
@@ -130,7 +187,7 @@ export default function AdminUsers() {
             <th>Email</th>
             <th>Role</th>
             <th>Created</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -141,6 +198,12 @@ export default function AdminUsers() {
               <td>{user.role}</td>
               <td>{new Date(user.created_at).toLocaleDateString()}</td>
               <td>
+                <button
+                  onClick={() => handleEditUser(user)}
+                  className="btn-link"
+                >
+                  Edit
+                </button>
                 <button
                   onClick={() => handleDeleteUser(user.id)}
                   className="btn-link btn-danger"
@@ -158,4 +221,5 @@ export default function AdminUsers() {
       )}
     </div>
   );
+}
 }

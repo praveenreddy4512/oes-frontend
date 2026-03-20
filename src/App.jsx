@@ -9,8 +9,10 @@ import StudentExams from "./pages/StudentExams";
 import StudentResults from "./pages/StudentResults";
 import StudentProfile from "./pages/StudentProfile";
 import ProfessorExams from "./pages/ProfessorExams";
+import ProfessorSubmissions from "./pages/ProfessorSubmissions";
 import ProfessorProfile from "./pages/ProfessorProfile";
 import CreateExam from "./pages/CreateExam";
+import ExamEditor from "./pages/ExamEditor";
 import TakeExam from "./pages/TakeExam";
 import AdminUsers from "./pages/AdminUsers";
 import AdminExams from "./pages/AdminExams";
@@ -96,8 +98,16 @@ export default function App() {
             element={user && user.role === "professor" ? <ProfessorExams user={user} /> : <Navigate to="/" />}
           />
           <Route
+            path="/professor/submissions"
+            element={user && user.role === "professor" ? <ProfessorSubmissions user={user} /> : <Navigate to="/" />}
+          />
+          <Route
             path="/professor/create-exam"
             element={user && user.role === "professor" ? <CreateExam user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/professor/exam/:id/edit"
+            element={user && user.role === "professor" ? <ExamEditor user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/professor/profile"

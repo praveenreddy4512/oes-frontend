@@ -1,12 +1,16 @@
 import { useState } from "react";
 import "../styles/pages.css";
 
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function StudentProfile({ user }) {
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [profile, setProfile] = useState({
     username: user.username,
     email: user.email || "",
-    phone: "",
   });
 
   const handleChange = (e) => {
@@ -14,14 +18,35 @@ export default function StudentProfile({ user }) {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    alert("Profile updated successfully!");
-    setEditMode(false);
+  const handleSave = async () => {
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch(`${apiUrl}/api/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: profile.email,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to update profile");
+      setSuccess("✅ Profile updated successfully!");
+      setEditMode(false);
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="page-container">
       <h1>My Profile</h1>
+
+      {error && <p className="error">{error}</p>}
+      {success && <p className="success">{success}</p>}
 
       <div className="profile-card">
         {!editMode ? (
@@ -53,20 +78,19 @@ export default function StudentProfile({ user }) {
                 onChange={handleChange}
               />
             </div>
-            <div className="profile-field">
-              <label>Phone:</label>
-              <input
-                type="tel"
-                name="phone"
-                value={profile.phone}
-                onChange={handleChange}
-              />
-            </div>
             <div className="button-group">
-              <button className="btn-primary" onClick={handleSave}>
-                Save
+              <button
+                className="btn-primary"
+                onClick={handleSave}
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save"}
               </button>
-              <button className="btn-secondary" onClick={() => setEditMode(false)}>
+              <button
+                className="btn-secondary"
+                onClick={() => setEditMode(false)}
+                disabled={loading}
+              >
                 Cancel
               </button>
             </div>
