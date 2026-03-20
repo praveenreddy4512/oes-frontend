@@ -29,7 +29,11 @@ export default function ProfessorExams({ user }) {
   const handleDelete = async (examId) => {
     if (!confirm("Are you sure you want to delete this exam?")) return;
     try {
-      await fetch(`${apiUrl}/api/exams/${examId}`, { method: "DELETE" });
+      const res = await fetch(`${apiUrl}/api/exams/${examId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete exam");
+      }
       setExams(exams.filter((e) => e.id !== examId));
       alert("Exam deleted successfully!");
     } catch (err) {
@@ -71,9 +75,6 @@ export default function ProfessorExams({ user }) {
               <td>
                 <a href={`/professor/exam/${exam.id}/edit`} className="btn-link">
                   Edit
-                </a>
-                <a href={`/professor/exam/${exam.id}/results`} className="btn-link">
-                  Results
                 </a>
                 <button
                   onClick={() => handleDelete(exam.id)}

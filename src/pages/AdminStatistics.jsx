@@ -48,7 +48,7 @@ export default function AdminStatistics() {
             <p>Submissions</p>
           </div>
           <div className="stat-card">
-            <h3>{stats.avg_percentage?.toFixed(2) || 0}%</h3>
+            <h3>{isNaN(stats.avg_percentage) ? 0 : Number(stats.avg_percentage || 0).toFixed(2)}%</h3>
             <p>Avg Percentage</p>
           </div>
           <div className="stat-card">
