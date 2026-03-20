@@ -25,6 +25,7 @@ export default function LoginPage({ onLogin }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
+        credentials: 'include',  // ✅ Allow cookies to be sent/received
       });
 
       const data = await response.json();

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/pages.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiGet } from "../utils/api";
 
 export default function StudentExams({ user }) {
   const [exams, setExams] = useState([]);
@@ -16,7 +15,7 @@ export default function StudentExams({ user }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/exams`);
+      const res = await apiGet('/api/exams');
       const data = await res.json();
       setExams(data.filter((e) => e.status === "published"));
     } catch (err) {

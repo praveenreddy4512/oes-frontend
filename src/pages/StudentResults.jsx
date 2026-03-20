@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/pages.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiGet } from "../utils/api";
 
 export default function StudentResults({ user }) {
   const [results, setResults] = useState([]);

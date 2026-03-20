@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/pages.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiGet } from "../utils/api";
 
 export default function StudentResult({ user }) {
   const { resultId } = useParams();
