@@ -30,6 +30,13 @@ export default function ExamEditor() {
   }, [id]);
 
   const fetchExamData = async () => {
+    // Check if id is undefined
+    if (!id) {
+      setError("Exam ID is required. Please access this page from the exams list.");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -60,6 +67,13 @@ export default function ExamEditor() {
 
   const handleUpdateExam = async (e) => {
     e.preventDefault();
+    
+    // Validate exam_id
+    if (!id) {
+      setError("Exam ID is missing. Please reload the page.");
+      return;
+    }
+    
     setError("");
     setSuccess("");
     try {
@@ -68,7 +82,10 @@ export default function ExamEditor() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(exam),
       });
-      if (!res.ok) throw new Error("Failed to update exam");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to update exam");
+      }
       setSuccess("✅ Exam updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
@@ -78,6 +95,13 @@ export default function ExamEditor() {
 
   const handleAddQuestion = async (e) => {
     e.preventDefault();
+    
+    // Validate exam_id
+    if (!id) {
+      setError("Exam ID is missing. Please reload the page.");
+      return;
+    }
+    
     if (!newQuestion.question_text.trim()) {
       setError("Question text is required");
       return;
@@ -93,7 +117,10 @@ export default function ExamEditor() {
           exam_id: id,
         }),
       });
-      if (!res.ok) throw new Error("Failed to add question");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to add question");
+      }
       const addedQuestion = await res.json();
       setQuestions((prev) => [...prev, addedQuestion]);
       setNewQuestion({
@@ -118,7 +145,10 @@ export default function ExamEditor() {
       const res = await fetch(`${apiUrl}/api/questions/${questionId}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete question");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete question");
+      }
       setQuestions((prev) => prev.filter((q) => q.id !== questionId));
       setSuccess("✅ Question deleted!");
       setTimeout(() => setSuccess(""), 3000);
