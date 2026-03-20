@@ -8,7 +8,6 @@ export default function CreateExam({ user }) {
     title: "",
     description: "",
     duration_minutes: 60,
-    passing_score: 50,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,7 +42,6 @@ export default function CreateExam({ user }) {
         title: "",
         description: "",
         duration_minutes: 60,
-        passing_score: 50,
       });
       setTimeout(
         () => (window.location.href = `/professor/exam/${data.id}/edit`),
@@ -97,19 +95,6 @@ export default function CreateExam({ user }) {
               onChange={handleChange}
               required
               min="1"
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Passing Score (%) *</label>
-            <input
-              type="number"
-              name="passing_score"
-              value={formData.passing_score}
-              onChange={handleChange}
-              required
-              min="0"
-              max="100"
             />
           </div>
         </div>
