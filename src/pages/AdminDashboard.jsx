@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "../styles/dashboard.css";
 import { apiGet } from "../utils/api";
+
+export default function AdminDashboard({ user }) {
+  // Admin Dashboard - displays management options
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">

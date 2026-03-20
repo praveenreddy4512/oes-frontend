@@ -34,7 +34,7 @@ export default function StudentResult({ user }) {
       setResult(resultData);
 
       // Fetch submission with answers
-      const submissionRes = await fetch(`${apiUrl}/api/submissions/${resultData.submission_id}`);
+      const submissionRes = await apiGet(`/api/submissions/${resultData.submission_id}`);
       if (submissionRes.ok) {
         const submissionData = await submissionRes.json();
         setSubmission(submissionData);

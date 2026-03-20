@@ -39,12 +39,12 @@ export default function ExamEditor() {
     setLoading(true);
     setError("");
     try {
-      const examRes = await fetch(`${apiUrl}/api/exams/${id}`);
+      const examRes = await apiGet(`/api/exams/${id}`);
       if (!examRes.ok) throw new Error("Failed to load exam");
       const examData = await examRes.json();
       setExam(examData);
 
-      const questionsRes = await fetch(`${apiUrl}/api/questions?exam_id=${id}`);
+      const questionsRes = await apiGet(`/api/questions?exam_id=${id}`);
       if (questionsRes.ok) {
         const questionsData = await questionsRes.json();
         setQuestions(questionsData);
@@ -76,7 +76,7 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${apiUrl}/api/exams/${id}`, {
+      const res = await apiPut(`/api/exams/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(exam),
@@ -108,7 +108,7 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${apiUrl}/api/questions`, {
+      const res = await apiPost('/api/questions', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,7 +141,7 @@ export default function ExamEditor() {
     if (!confirm("Are you sure you want to delete this question?")) return;
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/questions/${questionId}`, {
+      const res = await apiPut(`/api/questions/${questionId}`, {
         method: "DELETE",
       });
       if (!res.ok) {

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "../styles/pages.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiPost } from "../utils/api";
 
 export default function CreateExam({ user }) {
   const [formData, setFormData] = useState({
@@ -28,11 +27,7 @@ export default function CreateExam({ user }) {
     setSuccess("");
 
     try {
-      const res = await fetch(`${apiUrl}/api/exams`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, professor_id: user.id }),
-      });
+      const res = await apiPost('/api/exams', { ...formData, professor_id: user.id });
 
       if (!res.ok) throw new Error("Failed to create exam");
 

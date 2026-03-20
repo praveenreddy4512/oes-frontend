@@ -15,7 +15,7 @@ export default function StudentResults({ user }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/results/student/${user.id}`);
+      const res = await apiGet(`/api/results/student/${user.id}`);
       const data = await res.json();
       setResults(data);
     } catch (err) {

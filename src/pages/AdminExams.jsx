@@ -15,7 +15,7 @@ export default function AdminExams() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/exams`);
+      const res = await apiGet('/api/exams');
       const data = await res.json();
       setExams(data);
     } catch (err) {
@@ -43,7 +43,7 @@ export default function AdminExams() {
   const handleDelete = async (examId) => {
     if (!confirm("Are you sure?")) return;
     try {
-      await fetch(`${apiUrl}/api/exams/${examId}`, { method: "DELETE" });
+      await apiDelete(`/api/exams/${examId}`);
       alert("Exam deleted!");
       fetchExams();
     } catch (err) {

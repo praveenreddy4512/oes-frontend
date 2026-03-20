@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "../styles/pages.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiPut } from "../utils/api";
 
 export default function StudentProfile({ user }) {
   const [editMode, setEditMode] = useState(false);
@@ -23,12 +22,8 @@ export default function StudentProfile({ user }) {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${apiUrl}/api/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: profile.email,
-        }),
+      const res = await apiPut(`/api/users/${user.id}`, {
+        email: profile.email,
       });
       if (!res.ok) throw new Error("Failed to update profile");
       setSuccess("✅ Profile updated successfully!");
