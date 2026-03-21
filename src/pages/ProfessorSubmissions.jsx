@@ -105,6 +105,9 @@ export default function ProfessorSubmissions({ user }) {
                   <a href={`/professor/submission/${sub.id}`} className="btn-link">
                     View
                   </a>
+                  <a href={`/professor/submissions/${sub.id}/events`} className="btn-link" title="View student activity events">
+                    📊 Events
+                  </a>
                 </td>
               </tr>
             ))}

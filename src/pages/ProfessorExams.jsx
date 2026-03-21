@@ -78,6 +78,9 @@ export default function ProfessorExams({ user }) {
                 <a href={`/professor/exam/${exam.id}/results`} className="btn-link" title="View exam results and submissions">
                   Results
                 </a>
+                <a href={`/professor/exam/${exam.id}/submissions/events`} className="btn-link" title="View student activity and suspicious behavior">
+                  📊 Events
+                </a>
                 <button
                   onClick={() => handleDelete(exam.id)}
                   className="btn-link btn-danger"
