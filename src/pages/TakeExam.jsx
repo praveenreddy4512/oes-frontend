@@ -30,8 +30,10 @@ export default function TakeExam({ user }) {
   }, [timeLeft]);
 
   // ✅ NEW: Track tab switching and page refresh events
+  // IMPORTANT: Only track DURING exam (after submission starts, before submit button clicked)
   useEffect(() => {
-    if (!submission) return;
+    // Stop tracking after exam is submitted
+    if (!submission || submitted) return;
 
     // Log exam started event
     logEvent({
@@ -97,9 +99,10 @@ export default function TakeExam({ user }) {
     }
   }, [currentQuestion, submission]);
 
-  // ✅ NEW: Log event to backend
+  // ✅ NEW: Log event to backend (only during exam, not before or after)
   const logEvent = async (eventData) => {
-    if (!submission) return;
+    // Don't log events before submission or after submission is complete
+    if (!submission || (submitted && eventData.event_type !== 'exam_submitted')) return;
 
     try {
       const payload = {
@@ -158,6 +161,9 @@ export default function TakeExam({ user }) {
   };
 
   const handleAnswer = (questionId, option) => {
+    // Don't record answers after submission
+    if (submitted) return;
+    
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
     setCurrentQuestion(questionId);
     
@@ -213,7 +219,7 @@ export default function TakeExam({ user }) {
       }
       const result = await res.json();
       
-      // ✅ NEW: Log exam submitted event
+      // ✅ NEW: Log exam submitted event BEFORE setting submitted flag
       await logEvent({
         event_type: 'exam_submitted',
         event_details: {
@@ -225,6 +231,7 @@ export default function TakeExam({ user }) {
         }
       });
       
+      // NOW set submitted flag to stop all further event capture
       setSubmitted(true);
       alert(
         `Exam submitted! Score: ${result.correct_answers}/${result.total_questions} (${result.percentage}%)`
