@@ -1,10 +1,13 @@
 import { useNavigate } from "react-router-dom";
+import { clearToken } from "../utils/api.js";
 import "../styles/navbar.css";
 
 export default function Navbar({ user, onLogout }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // 🔐 Clear JWT token on logout
+    clearToken();
     localStorage.removeItem("user");
     onLogout();
     navigate("/");
