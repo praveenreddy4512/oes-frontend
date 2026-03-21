@@ -21,6 +21,8 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminStatistics from "./pages/AdminStatistics";
 import ExamResults from "./pages/ExamResults";
 import SubmissionGrading from "./pages/SubmissionGrading";
+import SubmissionEvents from "./pages/SubmissionEvents";
+import ExamSubmissionsWithEvents from "./pages/ExamSubmissionsWithEvents";
 import "./styles/app.css";
 
 export default function App() {
@@ -123,6 +125,14 @@ export default function App() {
           <Route
             path="/professor/submission/:submissionId"
             element={user && user.role === "professor" ? <SubmissionGrading user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/professor/submissions/:submissionId/events"
+            element={user && (user.role === "professor" || user.role === "admin") ? <SubmissionEvents user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/professor/exam/:examId/submissions/events"
+            element={user && (user.role === "professor" || user.role === "admin") ? <ExamSubmissionsWithEvents user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/professor/profile"
