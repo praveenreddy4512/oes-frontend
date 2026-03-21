@@ -3,7 +3,7 @@
  * Ensures all API calls include session cookies automatically
  */
 
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+export const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 /**
  * Make an API call with automatic credential inclusion

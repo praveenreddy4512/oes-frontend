@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/pages.css";
-import { apiGet, apiPost } from "../utils/api";
+import { apiGet, apiPost, apiPut, apiUrl } from "../utils/api";
 
 export default function AdminSettings() {
   const [settings, setSettings] = useState({
@@ -23,7 +23,7 @@ export default function AdminSettings() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/settings`);
+      const res = await apiGet('/api/settings');
       if (!res.ok) throw new Error("Failed to load settings");
       const data = await res.json();
       setSettings(data);
@@ -49,11 +49,7 @@ export default function AdminSettings() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`${apiUrl}/api/settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
+      const res = await apiPut('/api/settings', settings);
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to save settings");

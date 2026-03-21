@@ -24,7 +24,7 @@ export default function AdminUsers() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/users`);
+      const res = await apiGet('/api/users');
       const data = await res.json();
       setUsers(data);
     } catch (err) {
@@ -40,19 +40,13 @@ export default function AdminUsers() {
     setError("");
     setSuccess("");
     try {
-      const url = editingUser
-        ? `${apiUrl}/api/users/${editingUser.id}`
-        : `${apiUrl}/api/users`;
-      const method = editingUser ? "PUT" : "POST";
       const body = editingUser
         ? { username: newUser.username, email: newUser.email, role: newUser.role }
         : newUser;
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = editingUser
+        ? await apiPut(`/api/users/${editingUser.id}`, body)
+        : await apiPost('/api/users', body);
 
       if (!res.ok) throw new Error("Failed to save user");
 
@@ -86,9 +80,7 @@ export default function AdminUsers() {
     if (!confirm("Are you sure you want to delete this user?")) return;
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/users/${userId}`, {
-        method: "DELETE",
-      });
+      const res = await apiDelete(`/api/users/${userId}`);
       if (!res.ok) throw new Error("Failed to delete user");
       setSuccess("✅ User deleted!");
       fetchUsers();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import "../styles/pages.css";
-import { apiCall, apiGet, apiPost } from "../utils/api";
+import { apiCall, apiGet, apiPost, apiUrl } from "../utils/api";
 
 export default function TakeExam({ user }) {
   const { examId } = useParams();
@@ -27,7 +27,7 @@ export default function TakeExam({ user }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/exams/${examId}`);
+      const res = await apiGet(`/api/exams/${examId}`);
       const data = await res.json();
       setExam(data);
       setTimeLeft(data.duration_minutes * 60);
@@ -41,11 +41,7 @@ export default function TakeExam({ user }) {
 
   const startSubmission = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/submissions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exam_id: examId, student_id: user.id }),
-      });
+      const res = await apiPost('/api/submissions', { exam_id: examId, student_id: user.id });
       const data = await res.json();
       setSubmission(data);
     } catch (err) {
@@ -63,23 +59,19 @@ export default function TakeExam({ user }) {
     try {
       // Submit all answers
       for (const [questionId, selectedOption] of Object.entries(answers)) {
-        await fetch(
-          `${apiUrl}/api/submissions/${submission.submission_id}/answer`,
+        await apiPost(
+          `/api/submissions/${submission.submission_id}/answer`,
           {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              question_id: questionId,
-              selected_option: selectedOption,
-            }),
+            question_id: questionId,
+            selected_option: selectedOption,
           }
         );
       }
 
       // Finalize submission
-      const res = await fetch(
-        `${apiUrl}/api/submissions/${submission.submission_id}/submit`,
-        { method: "POST" }
+      const res = await apiPost(
+        `/api/submissions/${submission.submission_id}/submit`,
+        {}
       );
       const result = await res.json();
       setSubmitted(true);

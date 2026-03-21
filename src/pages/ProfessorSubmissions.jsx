@@ -16,7 +16,7 @@ export default function ProfessorSubmissions({ user }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${apiUrl}/api/submissions`);
+      const res = await apiGet('/api/submissions');
       if (!res.ok) throw new Error("Failed to load submissions");
       const data = await res.json();
       // Filter to only show submissions for this professor's exams

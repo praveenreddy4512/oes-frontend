@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/pages.css";
-import { apiGet, apiPut } from "../utils/api";
+import { apiGet, apiPut, apiUrl } from "../utils/api";
 
 export default function SubmissionGrading() {
   const { submissionId } = useParams();
@@ -26,7 +26,7 @@ export default function SubmissionGrading() {
     setError("");
     try {
       // Fetch submission details with answers
-      const res = await fetch(`${apiUrl}/api/results/${submissionId}`);
+      const res = await apiGet(`/api/results/${submissionId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to load submission");

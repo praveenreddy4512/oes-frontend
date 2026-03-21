@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/pages.css";
-import { apiGet, apiPut, apiDelete } from "../utils/api";
+import { apiGet, apiPut, apiDelete, apiUrl } from "../utils/api";
 
 export default function AdminExams() {
   const [exams, setExams] = useState([]);
@@ -28,11 +28,8 @@ export default function AdminExams() {
   const handleStatusChange = async (examId, newStatus) => {
     try {
       const exam = exams.find((e) => e.id === examId);
-      await fetch(`${apiUrl}/api/exams/${examId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...exam, status: newStatus }),
-      });
+      const res = await apiPut(`/api/exams/${examId}`, { ...exam, status: newStatus });
+      if (!res.ok) throw new Error("Failed to update exam status");
       alert("Exam status updated!");
       fetchExams();
     } catch (err) {

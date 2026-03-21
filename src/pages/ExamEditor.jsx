@@ -76,11 +76,7 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
-      const res = await apiPut(`/api/exams/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(exam),
-      });
+      const res = await apiPut(`/api/exams/${id}`, exam);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to update exam");
@@ -109,12 +105,8 @@ export default function ExamEditor() {
     setSuccess("");
     try {
       const res = await apiPost('/api/questions', {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newQuestion,
-          exam_id: id,
-        }),
+        ...newQuestion,
+        exam_id: id,
       });
       if (!res.ok) {
         const error = await res.json();
@@ -141,9 +133,7 @@ export default function ExamEditor() {
     if (!confirm("Are you sure you want to delete this question?")) return;
     setError("");
     try {
-      const res = await apiPut(`/api/questions/${questionId}`, {
-        method: "DELETE",
-      });
+      const res = await apiDelete(`/api/questions/${questionId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to delete question");
