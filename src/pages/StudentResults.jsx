@@ -16,6 +16,9 @@ export default function StudentResults({ user }) {
     setError("");
     try {
       const res = await apiGet(`/api/results/student/${user.id}`);
+      if (!res.ok) {
+        throw new Error("Failed to load results");
+      }
       const data = await res.json();
       setResults(data);
     } catch (err) {

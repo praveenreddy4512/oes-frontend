@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/pages.css";
-import { apiGet, apiUrl } from "../utils/api";
+import { apiGet } from "../utils/api";
 
 export default function ExamResults() {
   const { id } = useParams();
