@@ -28,10 +28,13 @@ export default function TakeExam({ user }) {
     setError("");
     try {
       const res = await apiGet(`/api/exams/${examId}`);
+      if (!res.ok) {
+        throw new Error("Failed to load exam");
+      }
       const data = await res.json();
       setExam(data);
       setTimeLeft(data.duration_minutes * 60);
-      startSubmission();
+      await startSubmission();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -50,7 +53,7 @@ export default function TakeExam({ user }) {
       setSubmission(data);
     } catch (err) {
       console.error("Submission creation error:", err);
-      setError(`Failed to start exam: ${err.message}`);
+      setError(err.message);
     }
   };
 
