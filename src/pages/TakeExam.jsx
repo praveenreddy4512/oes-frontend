@@ -42,10 +42,15 @@ export default function TakeExam({ user }) {
   const startSubmission = async () => {
     try {
       const res = await apiPost('/api/submissions', { exam_id: examId, student_id: user.id });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || `Failed to start submission: ${res.status}`);
+      }
       const data = await res.json();
       setSubmission(data);
     } catch (err) {
-      console.error(err);
+      console.error("Submission creation error:", err);
+      setError(`Failed to start exam: ${err.message}`);
     }
   };
 
@@ -54,18 +59,27 @@ export default function TakeExam({ user }) {
   };
 
   const handleSubmit = async () => {
+    if (!submission || !submission.submission_id) {
+      alert("Error: Submission was not properly initialized. Please reload the page.");
+      return;
+    }
+    
     if (!confirm("Are you sure you want to submit?")) return;
 
     try {
       // Submit all answers
       for (const [questionId, selectedOption] of Object.entries(answers)) {
-        await apiPost(
+        const ansRes = await apiPost(
           `/api/submissions/${submission.submission_id}/answer`,
           {
             question_id: questionId,
             selected_option: selectedOption,
           }
         );
+        if (!ansRes.ok) {
+          const error = await ansRes.json();
+          throw new Error(`Failed to submit answer: ${error.error || ansRes.statusText}`);
+        }
       }
 
       // Finalize submission
@@ -73,6 +87,10 @@ export default function TakeExam({ user }) {
         `/api/submissions/${submission.submission_id}/submit`,
         {}
       );
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to finalize submission");
+      }
       const result = await res.json();
       setSubmitted(true);
       alert(
