@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiPost, setToken } from "../utils/api.js";
 import "../styles/login.css";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
@@ -21,17 +20,16 @@ export default function LoginPage({ onLogin }) {
     setError("");
 
     try {
-      const response = await fetch(`${apiUrl}/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-        credentials: 'include',  // ✅ Allow cookies to be sent/received
-      });
-
+      const response = await apiPost("/api/login", formData);
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || "Login failed");
+      }
+
+      // 🔐 Store JWT token for future API calls
+      if (data.token) {
+        setToken(data.token);
       }
 
       onLogin(data.user);

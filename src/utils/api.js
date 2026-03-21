@@ -1,18 +1,42 @@
 /**
  * API Utility - Wraps fetch with credentials: 'include' for cross-origin cookies
- * Ensures all API calls include session cookies automatically
+ * Ensures all API calls include session cookies AND JWT tokens automatically
  */
 
 export const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 /**
- * Make an API call with automatic credential inclusion
+ * Get JWT token from localStorage
+ * @returns {string|null} JWT token or null if not available
+ */
+export function getToken() {
+  return localStorage.getItem('jwtToken');
+}
+
+/**
+ * Store JWT token in localStorage
+ * @param {string} token - JWT token to store
+ */
+export function setToken(token) {
+  localStorage.setItem('jwtToken', token);
+}
+
+/**
+ * Remove JWT token from localStorage
+ */
+export function clearToken() {
+  localStorage.removeItem('jwtToken');
+}
+
+/**
+ * Make an API call with automatic credential inclusion and JWT token
  * @param {string} endpoint - API endpoint (e.g., '/api/login')
  * @param {object} options - Fetch options (method, headers, body, etc.)
  * @returns {Promise} Fetch response
  */
 export async function apiCall(endpoint, options = {}) {
   const url = `${apiUrl}${endpoint}`;
+  const token = getToken();
   
   const defaultOptions = {
     credentials: 'include',  // ✅ Always include cookies
@@ -21,6 +45,11 @@ export async function apiCall(endpoint, options = {}) {
       ...options.headers,  // Allow overriding headers
     },
   };
+
+  // Add JWT token to Authorization header if available
+  if (token) {
+    defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+  }
 
   // Merge user options with defaults
   const fetchOptions = {
@@ -33,6 +62,14 @@ export async function apiCall(endpoint, options = {}) {
   };
 
   const response = await fetch(url, fetchOptions);
+  
+  // If 401 Unauthorized, clear token and redirect to login
+  if (response.status === 401) {
+    clearToken();
+    // Optional: Redirect to login page
+    // window.location.href = '/login';
+  }
+  
   return response;
 }
 
