@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import "../styles/pages.css";
 import { apiCall, apiGet, apiPost, apiUrl } from "../utils/api";
@@ -12,6 +12,12 @@ export default function TakeExam({ user }) {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  
+  // ✅ NEW: Event tracking states
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const questionStartTimeRef = useRef(null);
+  const tabSwitchCountRef = useRef(0);
+  const pageRefreshCountRef = useRef(0);
 
   useEffect(() => {
     fetchExam();
@@ -22,6 +28,100 @@ export default function TakeExam({ user }) {
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
+
+  // ✅ NEW: Track tab switching and page refresh events
+  useEffect(() => {
+    if (!submission) return;
+
+    // Log exam started event
+    logEvent({
+      event_type: 'exam_started',
+      event_details: { message: 'Student started the exam' }
+    });
+
+    // Track tab visibility changes (tab switching)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.warn('⚠️ Student switched away from exam tab!');
+        tabSwitchCountRef.current++;
+        logEvent({
+          event_type: 'tab_switched',
+          event_details: { 
+            action: 'switched_away',
+            tabSwitchCount: tabSwitchCountRef.current 
+          }
+        });
+      } else {
+        console.log('✅ Student returned to exam tab');
+        logEvent({
+          event_type: 'tab_switched',
+          event_details: { 
+            action: 'returned',
+            tabSwitchCount: tabSwitchCountRef.current 
+          }
+        });
+      }
+    };
+
+    // Track page refresh/unload
+    const handleBeforeUnload = (e) => {
+      pageRefreshCountRef.current++;
+      logEvent({
+        event_type: 'page_refreshed',
+        event_details: { 
+          pageRefreshCount: pageRefreshCountRef.current,
+          warning: 'Page was refreshed or will be refreshed'
+        }
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [submission]);
+
+  // ✅ NEW: Log question viewing and track time per question
+  useEffect(() => {
+    if (currentQuestion && submission) {
+      questionStartTimeRef.current = Date.now();
+      
+      logEvent({
+        event_type: 'question_viewed',
+        question_id: currentQuestion,
+        event_details: { questionId: currentQuestion }
+      });
+    }
+  }, [currentQuestion, submission]);
+
+  // ✅ NEW: Log event to backend
+  const logEvent = async (eventData) => {
+    if (!submission) return;
+
+    try {
+      const payload = {
+        ...eventData,
+        student_id: user.id,
+        exam_id: examId
+      };
+
+      const res = await apiPost(
+        `/api/submissions/${submission.submission_id}/events`,
+        payload
+      );
+
+      if (!res.ok) {
+        console.error('[❌ EVENT LOGGING FAILED]', await res.json());
+      } else {
+        console.log('[✅ EVENT LOGGED]', eventData.event_type);
+      }
+    } catch (error) {
+      console.error('[❌ EVENT LOGGING ERROR]', error.message);
+    }
+  };
 
   const fetchExam = async () => {
     setLoading(true);
@@ -59,6 +159,23 @@ export default function TakeExam({ user }) {
 
   const handleAnswer = (questionId, option) => {
     setAnswers((prev) => ({ ...prev, [questionId]: option }));
+    setCurrentQuestion(questionId);
+    
+    // ✅ NEW: Calculate time spent on this question
+    const timeSpent = questionStartTimeRef.current 
+      ? Math.floor((Date.now() - questionStartTimeRef.current) / 1000)
+      : 0;
+
+    // ✅ NEW: Log answer saved event
+    logEvent({
+      event_type: 'answer_saved',
+      question_id: questionId,
+      time_spent_seconds: timeSpent,
+      event_details: {
+        selectedOption: option,
+        timeSpentSeconds: timeSpent
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -95,6 +212,19 @@ export default function TakeExam({ user }) {
         throw new Error(error.error || "Failed to finalize submission");
       }
       const result = await res.json();
+      
+      // ✅ NEW: Log exam submitted event
+      await logEvent({
+        event_type: 'exam_submitted',
+        event_details: {
+          score: result.correct_answers,
+          totalQuestions: result.total_questions,
+          percentage: result.percentage,
+          tabSwitches: tabSwitchCountRef.current,
+          pageRefreshes: pageRefreshCountRef.current
+        }
+      });
+      
       setSubmitted(true);
       alert(
         `Exam submitted! Score: ${result.correct_answers}/${result.total_questions} (${result.percentage}%)`
