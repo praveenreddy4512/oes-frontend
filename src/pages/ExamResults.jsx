@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/pages.css";
-import { apiGet } from "../utils/api";
+import { apiGet, apiUrl } from "../utils/api";
 
 export default function ExamResults() {
   const { id } = useParams();
@@ -26,13 +26,13 @@ export default function ExamResults() {
     setError("");
     try {
       // Fetch exam details
-      const examRes = await fetch(`${apiUrl}/api/exams/${id}`);
+      const examRes = await apiGet(`/api/exams/${id}`);
       if (!examRes.ok) throw new Error("Failed to load exam");
       const examData = await examRes.json();
       setExam(examData);
 
       // Fetch exam results
-      const resultsRes = await fetch(`${apiUrl}/api/results/exam/${id}`);
+      const resultsRes = await apiGet(`/api/results/exam/${id}`);
       if (resultsRes.ok) {
         const resultsData = await resultsRes.json();
         setResults(resultsData);

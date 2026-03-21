@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/pages.css";
-import { apiGet } from "../utils/api";
+import { apiGet, apiUrl } from "../utils/api";
 
 export default function StudentResult({ user }) {
   const { resultId } = useParams();
@@ -25,7 +25,7 @@ export default function StudentResult({ user }) {
     setError("");
     try {
       // Fetch result details
-      const resultRes = await fetch(`${apiUrl}/api/results/${resultId}`);
+      const resultRes = await apiGet(`/api/results/${resultId}`);
       if (!resultRes.ok) {
         const errorData = await resultRes.json();
         throw new Error(errorData.error || "Failed to load result");
