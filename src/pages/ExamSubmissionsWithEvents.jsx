@@ -24,7 +24,7 @@ export default function ExamSubmissionsWithEvents() {
 
   const fetchSubmissionsWithEvents = async () => {
     try {
-      const res = await apiGet(`/api/exams/${examId}/submissions/events`);
+      const res = await apiGet(`/api/submissions/exam/${examId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to load submissions");
