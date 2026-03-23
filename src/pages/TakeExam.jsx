@@ -84,7 +84,7 @@ export default function TakeExam({ user }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [submission]);
+  }, [submission, submitted]);
 
   // ✅ NEW: Log question viewing and track time per question
   useEffect(() => {
