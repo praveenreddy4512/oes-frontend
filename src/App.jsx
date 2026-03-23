@@ -10,6 +10,7 @@ import StudentResults from "./pages/StudentResults";
 import StudentResult from "./pages/StudentResult";
 import StudentProfile from "./pages/StudentProfile";
 import ProfessorExams from "./pages/ProfessorExams";
+import ProfessorResults from "./pages/ProfessorResults";
 import ProfessorProfile from "./pages/ProfessorProfile";
 import CreateExam from "./pages/CreateExam";
 import ExamEditor from "./pages/ExamEditor";
@@ -111,6 +112,10 @@ export default function App() {
           <Route
             path="/professor/exam/:id/edit"
             element={user && user.role === "professor" ? <ExamEditor user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/professor/results"
+            element={user && user.role === "professor" ? <ProfessorResults user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/professor/exam/:id/results"

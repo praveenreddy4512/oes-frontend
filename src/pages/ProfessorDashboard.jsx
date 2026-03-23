@@ -22,9 +22,9 @@ export default function ProfessorDashboard({ user }) {
         </div>
 
         <div className="dashboard-card">
-          <h3>📈 Results Analysis</h3>
-          <p>View class performance and analytics</p>
-          <a href="/professor/exams" className="btn-primary">View Results</a>
+          <h3>📈 My Results</h3>
+          <p>View all exam results and statistics</p>
+          <a href="/professor/results" className="btn-primary">View Results</a>
         </div>
       </div>
     </div>
