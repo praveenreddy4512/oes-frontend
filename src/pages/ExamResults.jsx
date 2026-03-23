@@ -156,7 +156,7 @@ export default function ExamResults() {
                 <td>{new Date(result.created_at).toLocaleString()}</td>
                 <td>
                   <a
-                    href={`/professor/submission/${result.submission_id}`}
+                    href={`/professor/result/${result.id}`}
                     className="btn-link"
                   >
                     View Details

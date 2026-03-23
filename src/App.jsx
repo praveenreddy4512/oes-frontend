@@ -93,7 +93,7 @@ export default function App() {
           />
           <Route
             path="/student/result/:resultId"
-            element={user && user.role === "student" ? <StudentResult user={user} /> : <Navigate to="/" />}
+            element={user && (user.role === "student" || user.role === "professor" || user.role === "admin") ? <StudentResult user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/student/profile"
@@ -120,6 +120,10 @@ export default function App() {
           <Route
             path="/professor/exam/:id/results"
             element={user && user.role === "professor" ? <ExamResults user={user} /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/professor/result/:resultId"
+            element={user && user.role === "professor" ? <StudentResult user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/professor/submissions/:submissionId/events"
