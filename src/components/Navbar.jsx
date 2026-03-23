@@ -32,6 +32,7 @@ export default function Navbar({ user, onLogout }) {
         ...baseItems,
         { label: "Create Exam", path: "/professor/create-exam" },
         { label: "My Exams", path: "/professor/exams" },
+        { label: "My Results", path: "/professor/results" },
         { label: "Profile", path: "/professor/profile" },
       ];
     } else if (user.role === "admin") {
