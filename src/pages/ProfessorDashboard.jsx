@@ -22,15 +22,9 @@ export default function ProfessorDashboard({ user }) {
         </div>
 
         <div className="dashboard-card">
-          <h3>✅ Grade Submissions</h3>
-          <p>Review and grade student submissions</p>
-          <a href="/professor/submissions" className="btn-primary">Grade Work</a>
-        </div>
-
-        <div className="dashboard-card">
           <h3>📈 Results Analysis</h3>
           <p>View class performance and analytics</p>
-          <a href="/professor/results" className="btn-primary">View Analytics</a>
+          <a href="/professor/exams" className="btn-primary">View Results</a>
         </div>
       </div>
     </div>
