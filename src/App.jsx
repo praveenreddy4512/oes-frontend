@@ -10,7 +10,6 @@ import StudentResults from "./pages/StudentResults";
 import StudentResult from "./pages/StudentResult";
 import StudentProfile from "./pages/StudentProfile";
 import ProfessorExams from "./pages/ProfessorExams";
-import ProfessorSubmissions from "./pages/ProfessorSubmissions";
 import ProfessorProfile from "./pages/ProfessorProfile";
 import CreateExam from "./pages/CreateExam";
 import ExamEditor from "./pages/ExamEditor";
@@ -20,7 +19,6 @@ import AdminExams from "./pages/AdminExams";
 import AdminSettings from "./pages/AdminSettings";
 import AdminStatistics from "./pages/AdminStatistics";
 import ExamResults from "./pages/ExamResults";
-import SubmissionGrading from "./pages/SubmissionGrading";
 import SubmissionEvents from "./pages/SubmissionEvents";
 import ExamSubmissionsWithEvents from "./pages/ExamSubmissionsWithEvents";
 import "./styles/app.css";
@@ -107,10 +105,6 @@ export default function App() {
             element={user && user.role === "professor" ? <ProfessorExams user={user} /> : <Navigate to="/" />}
           />
           <Route
-            path="/professor/submissions"
-            element={user && user.role === "professor" ? <ProfessorSubmissions user={user} /> : <Navigate to="/" />}
-          />
-          <Route
             path="/professor/create-exam"
             element={user && user.role === "professor" ? <CreateExam user={user} /> : <Navigate to="/" />}
           />
@@ -121,10 +115,6 @@ export default function App() {
           <Route
             path="/professor/exam/:id/results"
             element={user && user.role === "professor" ? <ExamResults user={user} /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/professor/submission/:submissionId"
-            element={user && user.role === "professor" ? <SubmissionGrading user={user} /> : <Navigate to="/" />}
           />
           <Route
             path="/professor/submissions/:submissionId/events"
