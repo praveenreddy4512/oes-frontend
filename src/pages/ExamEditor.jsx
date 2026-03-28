@@ -175,7 +175,7 @@ export default function ExamEditor() {
   const handleAddGroupToExam = async (groupId) => {
     setError("");
     try {
-      const res = await apiPost(`/api/exams/${id}/groups`, { groupId });
+      const res = await apiPost(`/api/exams/${id}/groups`, { groupIds: [groupId] });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to add group");
