@@ -125,8 +125,6 @@ export default function AdminUsers() {
       setLoading(false);
     }
   };
-    }
-  };
 
   const handleGroupToggle = (groupId) => {
     setSelectedGroups((prev) =>
