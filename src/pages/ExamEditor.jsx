@@ -10,6 +10,8 @@ export default function ExamEditor() {
     title: "",
     description: "",
     duration: 60,
+    shuffle_questions: false,
+    shuffle_options: false,
   });
   const [questions, setQuestions] = useState([]);
   const [newQuestion, setNewQuestion] = useState({
@@ -57,10 +59,10 @@ export default function ExamEditor() {
   };
 
   const handleExamChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setExam((prev) => ({
       ...prev,
-      [name]: name === "duration" ? parseInt(value) : value,
+      [name]: type === "checkbox" ? checked : (name === "duration" ? parseInt(value) : value),
     }));
   };
 
@@ -76,7 +78,13 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
-      const res = await apiPut(`/api/exams/${id}`, exam);
+      const res = await apiPut(`/api/exams/${id}`, {
+        title: exam.title,
+        description: exam.description,
+        duration_minutes: exam.duration,
+        shuffle_questions: exam.shuffle_questions,
+        shuffle_options: exam.shuffle_options,
+      });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to update exam");
@@ -187,6 +195,37 @@ export default function ExamEditor() {
             required
           />
         </div>
+
+        <div className="form-group checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              name="shuffle_questions"
+              checked={exam.shuffle_questions || false}
+              onChange={handleExamChange}
+            />
+            <div>
+              <span>🔀 Shuffle Questions</span>
+              <span className="help-text">Randomize question order for each student</span>
+            </div>
+          </label>
+        </div>
+
+        <div className="form-group checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              name="shuffle_options"
+              checked={exam.shuffle_options || false}
+              onChange={handleExamChange}
+            />
+            <div>
+              <span>🔄 Shuffle Answer Options</span>
+              <span className="help-text">Randomize answer options (A, B, C, D) for each question</span>
+            </div>
+          </label>
+        </div>
+
         <button type="submit" className="btn-primary">
           Update Exam
         </button>

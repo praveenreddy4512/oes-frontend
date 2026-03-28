@@ -3,6 +3,16 @@ import { useParams } from "react-router-dom";
 import "../styles/pages.css";
 import { apiCall, apiGet, apiPost, apiUrl } from "../utils/api";
 
+// Utility function to shuffle array
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function TakeExam({ user }) {
   const { examId } = useParams();
   const [exam, setExam] = useState(null);
@@ -12,6 +22,9 @@ export default function TakeExam({ user }) {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [optionMapping, setOptionMapping] = useState({}); // Maps display option to actual option
   
   // ✅ NEW: Event tracking states
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -137,6 +150,42 @@ export default function TakeExam({ user }) {
       const data = await res.json();
       setExam(data);
       setTimeLeft(data.duration_minutes * 60);
+      
+      // Initialize shuffled questions
+      const questions = data.questions || [];
+      let finalQuestions = questions;
+      
+      if (data.shuffle_questions) {
+        finalQuestions = shuffleArray(questions);
+      }
+      
+      setShuffledQuestions(finalQuestions);
+      
+      // Create option mapping if shuffle_options is enabled
+      if (data.shuffle_options) {
+        const mapping = {};
+        finalQuestions.forEach((q) => {
+          const originalOptions = ['a', 'b', 'c', 'd'];
+          const shuffledOptions = shuffleArray(originalOptions);
+          mapping[q.id] = {
+            shuffled: shuffledOptions,
+            displayToActual: Object.fromEntries(
+              shuffledOptions.map((option, idx) => [
+                String.fromCharCode(97 + idx), // a, b, c, d
+                option
+              ])
+            ),
+            actualToDisplay: Object.fromEntries(
+              shuffledOptions.map((option, idx) => [
+                option,
+                String.fromCharCode(97 + idx) // a, b, c, d
+              ])
+            ),
+          };
+        });
+        setOptionMapping(mapping);
+      }
+      
       await startSubmission();
     } catch (err) {
       setError(err.message);
@@ -160,11 +209,14 @@ export default function TakeExam({ user }) {
     }
   };
 
-  const handleAnswer = (questionId, option) => {
+  const handleAnswer = (questionId, displayOption) => {
     // Don't record answers after submission
     if (submitted) return;
     
-    setAnswers((prev) => ({ ...prev, [questionId]: option }));
+    // Convert display option to actual option if shuffled
+    const actualOption = optionMapping[questionId]?.displayToActual[displayOption] || displayOption;
+    
+    setAnswers((prev) => ({ ...prev, [questionId]: actualOption }));
     setCurrentQuestion(questionId);
     
     // ✅ NEW: Calculate time spent on this question
@@ -178,7 +230,7 @@ export default function TakeExam({ user }) {
       question_id: questionId,
       time_spent_seconds: timeSpent,
       event_details: {
-        selectedOption: option,
+        selectedOption: actualOption,
         timeSpentSeconds: timeSpent
       }
     });
@@ -260,6 +312,24 @@ export default function TakeExam({ user }) {
       </div>
     );
 
+  // Get current question data
+  const currentQuestionData = shuffledQuestions[currentQuestionIndex];
+  const totalQuestions = shuffledQuestions.length;
+  const questionProgress = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+
+  // Handle navigation
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
   return (
     <div className="page-container">
       <div className="exam-header">
@@ -271,36 +341,79 @@ export default function TakeExam({ user }) {
         </div>
       </div>
 
-      <div className="questions-container">
-        {exam?.questions?.map((question, idx) => (
-          <div key={question.id} className="question-card">
-            <h3>
-              Q{idx + 1}: {question.question_text}
-            </h3>
-            <div className="options">
-              {["a", "b", "c", "d"].map((option) => (
-                <label key={option} className="option-label">
-                  <input
-                    type="radio"
-                    name={`question_${question.id}`}
-                    value={option}
-                    checked={answers[question.id] === option}
-                    onChange={(e) => handleAnswer(question.id, e.target.value)}
-                  />
-                  <span className="option-text">
-                    {option.toUpperCase()}: {question[`option_${option}`]}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="exam-progress">
+        <span className="progress-text">Question {questionProgress}</span>
+        <div className="progress-bar-container">
+          <div
+            className="progress-bar-fill"
+            style={{
+              width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
+            }}
+          ></div>
+        </div>
       </div>
 
-      <div className="exam-footer">
-        <button onClick={handleSubmit} className="btn-primary btn-large">
-          Submit Exam
+      <div className="questions-container">
+        {currentQuestionData && (
+          <div className="question-card question-card-full">
+            <h3>{currentQuestionData.question_text}</h3>
+            <div className="options">
+              {(() => {
+                const optionList = ['a', 'b', 'c', 'd'];
+                const displayOptions = optionMapping[currentQuestionData.id]?.shuffled || optionList;
+                
+                return displayOptions.map((actualOption, idx) => {
+                  const displayLabel = String.fromCharCode(97 + idx); // a, b, c, d
+                  const optionText = currentQuestionData[`option_${actualOption}`];
+                  const isAnswered = answers[currentQuestionData.id] === actualOption;
+                  
+                  return (
+                    <label key={actualOption} className="option-label">
+                      <input
+                        type="radio"
+                        name={`question_${currentQuestionData.id}`}
+                        value={displayLabel}
+                        checked={isAnswered}
+                        onChange={(e) => handleAnswer(currentQuestionData.id, e.target.value)}
+                      />
+                      <span className="option-text">
+                        {displayLabel.toUpperCase()}: {optionText}
+                      </span>
+                    </label>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="exam-navigation">
+        <button
+          onClick={goToPreviousQuestion}
+          disabled={currentQuestionIndex === 0}
+          className="btn-secondary"
+        >
+          ← Previous
         </button>
+
+        <div className="question-counter">
+          {currentQuestionIndex + 1} of {totalQuestions}
+        </div>
+
+        {currentQuestionIndex === totalQuestions - 1 ? (
+          <button onClick={handleSubmit} className="btn-primary btn-submit">
+            Submit Exam
+          </button>
+        ) : (
+          <button
+            onClick={goToNextQuestion}
+            disabled={currentQuestionIndex === totalQuestions - 1}
+            className="btn-secondary"
+          >
+            Next →
+          </button>
+        )}
       </div>
     </div>
   );
