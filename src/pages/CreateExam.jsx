@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/pages.css";
-import { apiPost } from "../utils/api";
+import { apiPost, apiGet } from "../utils/api";
 
 export default function CreateExam({ user }) {
   const [formData, setFormData] = useState({
@@ -8,9 +8,31 @@ export default function CreateExam({ user }) {
     description: "",
     duration_minutes: 60,
   });
+  const [groups, setGroups] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // Fetch available groups when component mounts
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        setLoadingGroups(true);
+        const res = await apiGet('/api/groups/for-exams/list');
+        if (res.ok) {
+          const data = await res.json();
+          setGroups(Array.isArray(data) ? data : data.groups || []);
+        }
+      } catch (err) {
+        console.error("Failed to load groups:", err);
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+    fetchGroups();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,6 +42,14 @@ export default function CreateExam({ user }) {
     }));
   };
 
+  const handleGroupToggle = (groupId) => {
+    setSelectedGroups((prev) =>
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -27,7 +57,12 @@ export default function CreateExam({ user }) {
     setSuccess("");
 
     try {
-      const res = await apiPost('/api/exams', { ...formData, professor_id: user.id });
+      const payload = { 
+        ...formData, 
+        professor_id: user.id,
+        groupIds: selectedGroups
+      };
+      const res = await apiPost('/api/exams', payload);
 
       if (!res.ok) throw new Error("Failed to create exam");
 
@@ -38,6 +73,7 @@ export default function CreateExam({ user }) {
         description: "",
         duration_minutes: 60,
       });
+      setSelectedGroups([]);
       setTimeout(
         () => (window.location.href = `/professor/exam/${data.id}/edit`),
         1500
@@ -92,6 +128,29 @@ export default function CreateExam({ user }) {
               min="1"
             />
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Assign to Groups</label>
+          {loadingGroups ? (
+            <p className="info">Loading groups...</p>
+          ) : groups.length === 0 ? (
+            <p className="info">No groups available. Create groups in Admin settings.</p>
+          ) : (
+            <div className="groups-checkbox-container">
+              {groups.map((group) => (
+                <label key={group.id} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedGroups.includes(group.id)}
+                    onChange={() => handleGroupToggle(group.id)}
+                  />
+                  <span>{group.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          <small>Students can only take exams assigned to their groups</small>
         </div>
 
         <button type="submit" className="btn-primary" disabled={loading}>
