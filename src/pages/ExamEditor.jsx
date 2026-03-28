@@ -14,6 +14,8 @@ export default function ExamEditor() {
     shuffle_options: false,
   });
   const [questions, setQuestions] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [assignedGroups, setAssignedGroups] = useState([]);
   const [newQuestion, setNewQuestion] = useState({
     question_text: "",
     option_a: "",
@@ -23,6 +25,7 @@ export default function ExamEditor() {
     correct_option: "A",
   });
   const [loading, setLoading] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -51,10 +54,25 @@ export default function ExamEditor() {
         const questionsData = await questionsRes.json();
         setQuestions(questionsData);
       }
+
+      // Fetch available groups and assigned groups
+      setLoadingGroups(true);
+      const groupsRes = await apiGet('/api/groups/for-exams/list');
+      if (groupsRes.ok) {
+        const groupsData = await groupsRes.json();
+        setGroups(Array.isArray(groupsData) ? groupsData : groupsData.groups || []);
+      }
+
+      const assignedRes = await apiGet(`/api/exams/${id}/groups`);
+      if (assignedRes.ok) {
+        const assignedData = await assignedRes.json();
+        setAssignedGroups(Array.isArray(assignedData) ? assignedData : assignedData.groups || []);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingGroups(false);
     }
   };
 
@@ -154,6 +172,42 @@ export default function ExamEditor() {
     }
   };
 
+  const handleAddGroupToExam = async (groupId) => {
+    setError("");
+    try {
+      const res = await apiPost(`/api/exams/${id}/groups`, { groupId });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to add group");
+      }
+      const group = groups.find((g) => g.id === groupId);
+      if (group) {
+        setAssignedGroups((prev) => [...prev, group]);
+      }
+      setSuccess("✅ Group added to exam!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleRemoveGroupFromExam = async (groupId) => {
+    if (!confirm("Remove this group from the exam?")) return;
+    setError("");
+    try {
+      const res = await apiDelete(`/api/exams/${id}/groups/${groupId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to remove group");
+      }
+      setAssignedGroups((prev) => prev.filter((g) => g.id !== groupId));
+      setSuccess("✅ Group removed!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   if (loading) return <div className="page-container"><p>Loading exam data...</p></div>;
 
   return (
@@ -224,6 +278,57 @@ export default function ExamEditor() {
               <span className="help-text">Randomize answer options (A, B, C, D) for each question</span>
             </div>
           </label>
+        </div>
+
+        <div className="form-group">
+          <label>Assigned Groups</label>
+          {loadingGroups ? (
+            <p className="info">Loading groups...</p>
+          ) : assignedGroups.length === 0 ? (
+            <p className="info">No groups assigned yet</p>
+          ) : (
+            <div className="assigned-groups-list">
+              {assignedGroups.map((group) => (
+                <div key={group.id} className="group-badge">
+                  <span>{group.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGroupFromExam(group.id)}
+                    className="btn-small-danger"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label>Add Groups to Exam</label>
+          {loadingGroups ? (
+            <p className="info">Loading groups...</p>
+          ) : groups.length === 0 ? (
+            <p className="info">No groups available</p>
+          ) : (
+            <div className="groups-checkbox-container">
+              {groups.map((group) => {
+                const isAssigned = assignedGroups.some((ag) => ag.id === group.id);
+                return (
+                  <button
+                    key={group.id}
+                    type="button"
+                    onClick={() => !isAssigned && handleAddGroupToExam(group.id)}
+                    disabled={isAssigned}
+                    className={`group-add-btn ${isAssigned ? 'assigned' : ''}`}
+                  >
+                    {group.name}
+                    {isAssigned && ' ✓'}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <button type="submit" className="btn-primary">

@@ -4,24 +4,44 @@ import { apiGet } from "../utils/api";
 
 export default function StudentExams({ user }) {
   const [exams, setExams] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchExams();
+    fetchData();
   }, []);
 
-  const fetchExams = async () => {
+  const fetchData = async () => {
     setLoading(true);
+    setLoadingGroups(true);
     setError("");
     try {
-      const res = await apiGet('/api/exams');
-      const data = await res.json();
-      setExams(data.filter((e) => e.status === "published"));
+      // Fetch student's groups
+      const groupsRes = await apiGet('/api/groups/student/my-groups');
+      if (groupsRes.ok) {
+        const groupsData = await groupsRes.json();
+        setGroups(Array.isArray(groupsData) ? groupsData : groupsData.groups || []);
+      }
+
+      // Fetch exams assigned to student's groups
+      const examsRes = await apiGet('/api/exams/student/exams/by-group');
+      const examsData = await examsRes.json();
+      setExams(examsData.filter((e) => e.status === "published"));
     } catch (err) {
       setError(err.message);
+      // Fallback to fetching all published exams if group filtering fails
+      try {
+        const res = await apiGet('/api/exams');
+        const data = await res.json();
+        setExams(data.filter((e) => e.status === "published"));
+      } catch (fallbackErr) {
+        console.error("Fallback fetch also failed:", fallbackErr);
+      }
     } finally {
       setLoading(false);
+      setLoadingGroups(false);
     }
   };
 
@@ -30,6 +50,17 @@ export default function StudentExams({ user }) {
       <h1>Available Exams</h1>
       {error && <p className="error">{error}</p>}
       {loading && <p>Loading exams...</p>}
+
+      {!loadingGroups && groups.length > 0 && (
+        <div className="student-groups-info">
+          <h3>📚 Your Groups</h3>
+          <div className="groups-list-inline">
+            {groups.map((group) => (
+              <span key={group.id} className="group-tag">{group.name}</span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="exams-grid">
         {exams.map((exam) => (
@@ -49,7 +80,7 @@ export default function StudentExams({ user }) {
       </div>
 
       {exams.length === 0 && !loading && (
-        <p className="no-data">No exams available at the moment.</p>
+        <p className="no-data">No exams available for your groups at the moment.</p>
       )}
     </div>
   );
