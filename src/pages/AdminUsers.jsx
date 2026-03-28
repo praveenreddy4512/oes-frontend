@@ -4,7 +4,10 @@ import { apiCall, apiGet, apiPost, apiPut, apiDelete } from "../utils/api";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroups, setSelectedGroups] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingGroups, setLoadingGroups] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +21,23 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers();
+    fetchGroups();
   }, []);
+
+  const fetchGroups = async () => {
+    try {
+      setLoadingGroups(true);
+      const res = await apiGet('/api/groups/for-exams/list');
+      if (res.ok) {
+        const data = await res.json();
+        setGroups(Array.isArray(data) ? data : data.groups || []);
+      }
+    } catch (err) {
+      console.error("Failed to load groups:", err);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -50,10 +69,27 @@ export default function AdminUsers() {
 
       if (!res.ok) throw new Error("Failed to save user");
 
+      const userData = await res.json();
+      const createdUserId = editingUser ? editingUser.id : userData.id;
+
+      // If creating a student and groups are selected, add them to groups
+      if (!editingUser && newUser.role === "student" && selectedGroups.length > 0) {
+        for (const groupId of selectedGroups) {
+          try {
+            await apiPost(`/api/groups/${groupId}/members`, {
+              studentIds: [createdUserId]
+            });
+          } catch (err) {
+            console.error(`Failed to add student to group ${groupId}:`, err);
+          }
+        }
+      }
+
       setSuccess(
-        editingUser ? "✅ User updated successfully!" : "✅ User created successfully!"
+        editingUser ? "✅ User updated successfully!" : "✅ User created successfully and added to groups!"
       );
       setNewUser({ username: "", password: "", role: "student", email: "" });
+      setSelectedGroups([]);
       setEditingUser(null);
       setShowForm(false);
       fetchUsers();
@@ -65,6 +101,14 @@ export default function AdminUsers() {
     }
   };
 
+  const handleGroupToggle = (groupId) => {
+    setSelectedGroups((prev) =>
+      prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
+
   const handleEditUser = (user) => {
     setEditingUser(user);
     setNewUser({
@@ -73,6 +117,7 @@ export default function AdminUsers() {
       role: user.role,
       password: "",
     });
+    setSelectedGroups([]);
     setShowForm(true);
   };
 
@@ -93,6 +138,7 @@ export default function AdminUsers() {
   const cancelEdit = () => {
     setEditingUser(null);
     setNewUser({ username: "", password: "", role: "student", email: "" });
+    setSelectedGroups([]);
     setShowForm(false);
   };
 
@@ -146,13 +192,44 @@ export default function AdminUsers() {
             <label>Role</label>
             <select
               value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              onChange={(e) => {
+                setNewUser({ ...newUser, role: e.target.value });
+                if (e.target.value !== "student") {
+                  setSelectedGroups([]);
+                }
+              }}
             >
               <option value="student">Student</option>
               <option value="professor">Professor</option>
               <option value="admin">Admin</option>
             </select>
           </div>
+
+          {newUser.role === "student" && (
+            <div className="form-group">
+              <label>Assign to Groups</label>
+              {loadingGroups ? (
+                <p className="info">Loading groups...</p>
+              ) : groups.length === 0 ? (
+                <p className="info">No groups available. Create groups first.</p>
+              ) : (
+                <div className="groups-checkbox-container">
+                  {groups.map((group) => (
+                    <label key={group.id} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={selectedGroups.includes(group.id)}
+                        onChange={() => handleGroupToggle(group.id)}
+                      />
+                      <span>{group.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <small>Student will be added to selected groups upon creation</small>
+            </div>
+          )}
+
           <div className="button-group">
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? "Saving..." : editingUser ? "Update User" : "Create User"}
