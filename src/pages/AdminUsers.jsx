@@ -73,31 +73,58 @@ export default function AdminUsers() {
       const createdUserId = editingUser ? editingUser.id : userData.id;
 
       // If creating a student and groups are selected, add them to groups
+      let groupsAddedCount = 0;
+      let groupErrors = [];
+      
       if (!editingUser && newUser.role === "student" && selectedGroups.length > 0) {
         for (const groupId of selectedGroups) {
           try {
-            await apiPost(`/api/groups/${groupId}/members`, {
+            const groupRes = await apiPost(`/api/groups/${groupId}/members`, {
               studentIds: [createdUserId]
             });
+            
+            if (!groupRes.ok) {
+              const error = await groupRes.json();
+              groupErrors.push(`Group ${groupId}: ${error.error || 'Failed to add'}`);
+            } else {
+              groupsAddedCount++;
+              console.log(`✅ Student ${createdUserId} added to group ${groupId}`);
+            }
           } catch (err) {
+            groupErrors.push(`Group ${groupId}: ${err.message}`);
             console.error(`Failed to add student to group ${groupId}:`, err);
           }
         }
       }
 
-      setSuccess(
-        editingUser ? "✅ User updated successfully!" : "✅ User created successfully and added to groups!"
-      );
+      // Show success message with details
+      let successMsg = editingUser ? "✅ User updated successfully!" : "✅ User created successfully";
+      if (!editingUser && newUser.role === "student") {
+        if (selectedGroups.length > 0) {
+          successMsg += ` and added to ${groupsAddedCount}/${selectedGroups.length} groups`;
+        } else {
+          successMsg += "!";
+        }
+      }
+      
+      // Show error if group additions failed
+      if (groupErrors.length > 0) {
+        console.warn("⚠️ Group assignment errors:", groupErrors);
+      }
+      
+      setSuccess(successMsg);
       setNewUser({ username: "", password: "", role: "student", email: "" });
       setSelectedGroups([]);
       setEditingUser(null);
       setShowForm(false);
       fetchUsers();
-      setTimeout(() => setSuccess(""), 3000);
+      setTimeout(() => setSuccess(""), 4000);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
     }
   };
 
