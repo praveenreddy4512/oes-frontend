@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import "../styles/pages.css";
 import { apiCall, apiGet, apiPost, apiUrl } from "../utils/api";
+import AIExtensionDetector from "../utils/AIExtensionDetector";
 
 // Utility function to shuffle array
 const shuffleArray = (array) => {
@@ -31,6 +32,7 @@ export default function TakeExam({ user }) {
   const questionStartTimeRef = useRef(null);
   const tabSwitchCountRef = useRef(0);
   const pageRefreshCountRef = useRef(0);
+  const aiDetectorRef = useRef(null);
 
   useEffect(() => {
     fetchExam();
@@ -47,6 +49,13 @@ export default function TakeExam({ user }) {
   useEffect(() => {
     // Stop tracking after exam is submitted
     if (!submission || submitted) return;
+
+    // Initialize AI Extension Detector
+    if (!aiDetectorRef.current) {
+      aiDetectorRef.current = new AIExtensionDetector();
+      aiDetectorRef.current.init();
+      console.log('✅ AI Extension Detector initialized');
+    }
 
     // Log exam started event
     logEvent({
@@ -271,6 +280,9 @@ export default function TakeExam({ user }) {
       }
       const result = await res.json();
       
+      // Get AI Detection Summary
+      const aiDetectionSummary = aiDetectorRef.current ? aiDetectorRef.current.getSummary() : null;
+      
       // ✅ NEW: Log exam submitted event BEFORE setting submitted flag
       await logEvent({
         event_type: 'exam_submitted',
@@ -279,7 +291,8 @@ export default function TakeExam({ user }) {
           totalQuestions: result.total_questions,
           percentage: result.percentage,
           tabSwitches: tabSwitchCountRef.current,
-          pageRefreshes: pageRefreshCountRef.current
+          pageRefreshes: pageRefreshCountRef.current,
+          aiDetection: aiDetectionSummary
         }
       });
       
