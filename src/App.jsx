@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import StudentDashboard from "./pages/StudentDashboard";
 import ProfessorDashboard from "./pages/ProfessorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -60,6 +62,9 @@ export default function App() {
             path="/"
             element={user ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />}
           />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Protected Routes */}
           <Route

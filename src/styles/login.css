@@ -213,3 +213,76 @@
   color: #b45309;
   font-weight: 800;
 }
+
+/* Forgot Password Link */
+.forgot-password {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.forgot-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.forgot-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* Back to Login */
+.back-to-login {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* Success Message */
+.success {
+  background: #f0fdf4;
+  color: #166534;
+  padding: 0.875rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #bbf7d0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Error Box for Invalid Token */
+.error-box {
+  background: #fef2f2;
+  color: var(--error);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid #fee2e2;
+  text-align: center;
+}

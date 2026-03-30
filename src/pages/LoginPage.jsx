@@ -84,6 +84,10 @@ export default function LoginPage({ onLogin }) {
           <button type="submit" disabled={loading} className="login-btn">
             {loading ? "Logging in..." : "Login"}
           </button>
+
+          <div className="forgot-password">
+            <a href="/forgot-password" className="forgot-link">Forgot Password?</a>
+          </div>
         </form>
 
         <div className="login-hint">
