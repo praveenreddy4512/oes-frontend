@@ -1,10 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { clearToken } from "../utils/api.js";
 import icon from "../assets/icon.png";
 import "../styles/navbar.css";
 
 export default function Navbar({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     // 🔐 Clear JWT token on logout
@@ -63,7 +64,7 @@ export default function Navbar({ user, onLogout }) {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className="navbar-link"
+            className={`navbar-link ${location.pathname === item.path ? "active" : ""}`}
           >
             {item.label}
           </button>
