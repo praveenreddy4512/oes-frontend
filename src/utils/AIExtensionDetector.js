@@ -274,6 +274,8 @@ class AIExtensionDetector {
         exam_id: this.examId
       };
 
+      console.log(`[📤 SENDING AI EVENT] Type: ${event.type}, Student: ${this.studentId}, Exam: ${this.examId}`);
+
       const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
         headers: {
@@ -283,10 +285,14 @@ class AIExtensionDetector {
       });
 
       if (!response.ok) {
-        console.error('Failed to log AI event to server');
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`[❌ AI EVENT FAILED] Status: ${response.status}`, errorData);
+      } else {
+        const data = await response.json();
+        console.log(`[✅ AI EVENT STORED] Response:`, data);
       }
     } catch (error) {
-      console.error('Error sending AI event to server:', error);
+      console.error('[❌ AI EVENT ERROR] Network error:', error);
     }
   }
 
