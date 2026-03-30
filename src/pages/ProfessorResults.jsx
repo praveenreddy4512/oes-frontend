@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 import "../styles/pages.css";
 import { apiGet } from "../utils/api";
 
@@ -84,6 +85,64 @@ export default function ProfessorResults({ user }) {
     return 0;
   });
 
+  const exportAllResults = () => {
+    if (exams.length === 0) {
+      alert("No exams to export");
+      return;
+    }
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+
+    // Add a sheet for each exam
+    exams.forEach((exam) => {
+      const examResults = results[exam.id] || [];
+      const stats = getExamStats(exam.id);
+
+      // Summary data
+      const summaryData = [
+        ["Exam Title", exam.title],
+        ["Description", exam.description],
+        ["Total Submissions", stats.total],
+        ["Passed", stats.passed],
+        ["Failed", stats.failed],
+        ["Average Score", `${stats.avgScore}%`],
+        [],
+        [],
+      ];
+
+      // Results data
+      const resultsData = [
+        ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Status"],
+        ...examResults.map((result) => [
+          result.username,
+          Number(result.obtained_marks) || 0,
+          Number(result.total_marks) || 0,
+          `${Number(result.percentage || 0).toFixed(2)}%`,
+          result.status.toUpperCase(),
+        ]),
+      ];
+
+      // Combine summary and results
+      const allData = [...summaryData, ...resultsData];
+
+      // Create worksheet
+      const worksheet = XLSX.utils.aoa_to_sheet(allData);
+      worksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+
+      // Add sheet to workbook (use exam title or a safe name)
+      const sheetName = exam.title.slice(0, 31).replace(/[^a-zA-Z0-9_-]/g, "_");
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    });
+
+    // Generate filename
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `All_Exam_Results_${timestamp}.xlsx`;
+
+    // Download the file
+    XLSX.writeFile(workbook, filename);
+  };
+
   if (loading) return <div className="page-container"><p>Loading results...</p></div>;
 
   return (
@@ -94,6 +153,19 @@ export default function ProfessorResults({ user }) {
       </div>
 
       {error && <p className="error">{error}</p>}
+
+      {/* Export Button */}
+      {exams.length > 0 && (
+        <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "flex-end" }}>
+          <button
+            className="btn-primary"
+            onClick={exportAllResults}
+            style={{ padding: "10px 20px" }}
+          >
+            📊 Export All Results as Excel
+          </button>
+        </div>
+      )}
 
       {/* Sort Controls */}
       {exams.length > 0 && (

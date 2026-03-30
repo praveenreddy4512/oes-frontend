@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import * as XLSX from "xlsx";
 import "../styles/pages.css";
 import { apiGet } from "../utils/api";
 
@@ -44,7 +45,59 @@ export default function ExamResults() {
     }
   };
 
-  if (loading) return <div className="page-container"><p>Loading exam results...</p></div>;
+  const exportToExcel = () => {
+    if (results.length === 0) {
+      alert("No results to export");
+      return;
+    }
+
+    // Prepare data for Excel
+    const exportData = [
+      {
+        "Exam Title": exam.title,
+        "Exam Description": exam.description,
+        "Total Submissions": stats.total,
+        "Passed": stats.passed,
+        "Failed": stats.failed,
+        "Average Score": `${stats.avgScore}%`,
+      },
+      {}, // Empty row for spacing
+      {}, // Empty row for spacing
+    ];
+
+    // Add column headers
+    const dataWithHeaders = [
+      ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Status", "Attempted On"],
+      ...filteredResults.map((result) => [
+        result.username,
+        Number(result.obtained_marks) || 0,
+        Number(result.total_marks) || 0,
+        `${Number(result.percentage || 0).toFixed(2)}%`,
+        result.status.toUpperCase(),
+        new Date(result.attempted_at || result.submitted_at).toLocaleString(),
+      ]),
+    ];
+
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Create summary sheet
+    const summaryWorksheet = XLSX.utils.aoa_to_sheet(exportData);
+    summaryWorksheet["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 25 }];
+    XLSX.utils.book_append_sheet(workbook, summaryWorksheet, "Summary");
+
+    // Create results sheet
+    const resultsWorksheet = XLSX.utils.aoa_to_sheet(dataWithHeaders);
+    resultsWorksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 25 }];
+    XLSX.utils.book_append_sheet(workbook, resultsWorksheet, "Results");
+
+    // Generate filename
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `${exam.title.replace(/\s+/g, "_")}_Results_${timestamp}.xlsx`;
+
+    // Download the file
+    XLSX.writeFile(workbook, filename);
+  };
   if (error) return <div className="page-container"><p className="error">{error}</p></div>;
   if (!exam) return <div className="page-container"><p>Exam not found</p></div>;
 
@@ -110,6 +163,13 @@ export default function ExamResults() {
           onClick={() => setFilter("fail")}
         >
           Failed ({stats.failed})
+        </button>
+        <button
+          className="btn-primary"
+          onClick={exportToExcel}
+          style={{ marginLeft: "auto" }}
+        >
+          📊 Export as Excel
         </button>
       </div>
 
