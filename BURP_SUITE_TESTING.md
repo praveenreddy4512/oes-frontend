@@ -26,7 +26,23 @@ This guide demonstrates how to use Burp Suite to intercept and analyze login req
 1. **Open Firefox**
 2. **Settings → Network Settings**
 3. **Scroll to "Proxy Settings"**
-4. **Select "Manual proxy configuration"**
+4. **Selsql
+sql, 3 votes
+mongodb
+mongodb, 2 votes
+pl sql, mongo db
+pl sql, mongo db, 1 vote
+mysqlmongodb
+mysqlmongodb, 4 votes
+mongodb and sql
+mongodb and sql, 1 vote
+MySqlMongo
+MySqlMongo, 2 votes
+DB
+DB, 1 vote
+Mysql
+Mysql, 4 votes
+oraclect "Manual proxy configuration"**
 5. **HTTP Proxy:** `127.0.0.1`
 6. **Port:** `8080`
 7. **Check "Also use this proxy for HTTPS"** (optionally, for HTTPS traffic)

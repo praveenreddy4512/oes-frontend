@@ -17,26 +17,26 @@ Full end-to-end JWT (JSON Web Token) authentication with HMAC-SHA256 signing has
        │ 1. User credentials               │
        ├──────────────────────────────────>│
        │                                   │
-       │    2. Verify password (Argon2)   │
+       │    2. Verify password (Argon2)    │
        │ ╶─────────────────────────────────╴
        │                                   │
        │    3. Generate JWT token          │
-       │    HMAC-SHA256(header.payload)   │
+       │    HMAC-SHA256(header.payload)    │
        │ ╶─────────────────────────────────╴
        │                                   │
        │   4. Return token in response     │
        │<──────────────────────────────────┤
        │                                   │
-       │ 5. Store token in localStorage   │
+       │ 5. Store token in localStorage    │
        │ ╶─────────────────────────────────╴
        │                                   │
        │ 6. Include token in auth header   │
        ├──────────────────────────────────>│
        │    "Authorization: Bearer ..."    │
        │                                   │
-       │    7. Verify HMAC signature      │
+       │    7. Verify HMAC signature       │
        │       Check expiration            │
-       │    ╶─────────────────────────────╴
+       │    ╶───────────────────────────── |
        │                                   │
        │ 8. Return protected resource      │
        │<──────────────────────────────────┤
@@ -69,7 +69,8 @@ Full end-to-end JWT (JSON Web Token) authentication with HMAC-SHA256 signing has
 ```
 
 **Key Functions:**
-- `generateToken(user)` - Creates signed JWT token (20 lines)
+- `generateToken(user)` 7. Verify HMAC signature      │
+       │       Check expiration- Creates signed JWT token (20 lines)
 - `verifyToken(token)` - Validates token signature and expiration (8 lines)
 - `authMiddleware` - Express middleware protecting routes (12 lines)
 - `requireRole(...roles)` - Role-based access control (10 lines)
