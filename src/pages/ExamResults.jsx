@@ -11,7 +11,7 @@ export default function ExamResults() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all");
+
 
   useEffect(() => {
     if (!id) {
@@ -56,8 +56,6 @@ export default function ExamResults() {
       ["Exam Title", exam.title],
       ["Exam Description", exam.description],
       ["Total Submissions", stats.total],
-      ["Passed", stats.passed],
-      ["Failed", stats.failed],
       ["Average Score", `${stats.avgScore}%`],
       [],
       [],
@@ -65,13 +63,12 @@ export default function ExamResults() {
 
     // Prepare results data as array of arrays
     const resultsData = [
-      ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Status", "Attempted On"],
+      ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Attempted On"],
       ...filteredResults.map((result) => [
         result.username,
         Number(result.obtained_marks) || 0,
         Number(result.total_marks) || 0,
         `${Number(result.percentage || 0).toFixed(2)}%`,
-        result.status.toUpperCase(),
         new Date(result.attempted_at || result.submitted_at).toLocaleString(),
       ]),
     ];
@@ -86,7 +83,7 @@ export default function ExamResults() {
 
     // Create results sheet
     const resultsWorksheet = XLSX.utils.aoa_to_sheet(resultsData);
-    resultsWorksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 25 }];
+    resultsWorksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 25 }];
     XLSX.utils.book_append_sheet(workbook, resultsWorksheet, "Results");
 
     // Generate filename
@@ -99,16 +96,10 @@ export default function ExamResults() {
   if (error) return <div className="page-container"><p className="error">{error}</p></div>;
   if (!exam) return <div className="page-container"><p>Exam not found</p></div>;
 
-  const filteredResults = results.filter((result) => {
-    if (filter === "pass") return result.status === "pass";
-    if (filter === "fail") return result.status === "fail";
-    return true;
-  });
+  const filteredResults = results;
 
   const stats = {
     total: results.length,
-    passed: results.filter((r) => r.status === "pass").length,
-    failed: results.filter((r) => r.status === "fail").length,
     avgScore:
       results.length > 0
         ? (results.reduce((sum, r) => sum + Number(r.percentage || 0), 0) / results.length).toFixed(2)
@@ -129,14 +120,6 @@ export default function ExamResults() {
           <p>Total Submissions</p>
         </div>
         <div className="stat-card">
-          <h3>{stats.passed}</h3>
-          <p>Passed</p>
-        </div>
-        <div className="stat-card">
-          <h3>{stats.failed}</h3>
-          <p>Failed</p>
-        </div>
-        <div className="stat-card">
           <h3>{stats.avgScore}%</h3>
           <p>Average Score</p>
         </div>
@@ -144,24 +127,6 @@ export default function ExamResults() {
 
       {/* Filter Buttons */}
       <div className="filter-controls">
-        <button
-          className={`filter-btn ${filter === "all" ? "active" : ""}`}
-          onClick={() => setFilter("all")}
-        >
-          All ({results.length})
-        </button>
-        <button
-          className={`filter-btn ${filter === "pass" ? "active" : ""}`}
-          onClick={() => setFilter("pass")}
-        >
-          Passed ({stats.passed})
-        </button>
-        <button
-          className={`filter-btn ${filter === "fail" ? "active" : ""}`}
-          onClick={() => setFilter("fail")}
-        >
-          Failed ({stats.failed})
-        </button>
         <button
           className="btn-primary"
           onClick={exportToExcel}
@@ -181,7 +146,6 @@ export default function ExamResults() {
               <th>Student</th>
               <th>Score</th>
               <th>Percentage</th>
-              <th>Status</th>
               <th>Attempted On</th>
               <th>Action</th>
             </tr>
@@ -199,19 +163,13 @@ export default function ExamResults() {
                       className="progress-fill"
                       style={{
                         width: `${Number(result.percentage) || 0}%`,
-                        backgroundColor:
-                          Number(result.percentage) >= 50 ? "#4caf50" : "#f44336",
+                        backgroundColor: \"#4caf50\",
                       }}
                     ></div>
-                    <span className="progress-text">{Number(result.percentage || 0).toFixed(2)}%</span>
+                    <span className=\"progress-text\">{Number(result.percentage || 0).toFixed(2)}%</span>
                   </div>
                 </td>
-                <td>
-                  <span className={`status-${result.status}`}>
-                    {result.status === "pass" ? "✅ Pass" : "❌ Fail"}
-                  </span>
-                </td>
-                <td>{new Date(result.created_at).toLocaleString()}</td>
+                <td>{new Date(result.attempted_at || result.submitted_at).toLocaleString()}</td>
                 <td>
                   <a
                     href={`/professor/result/${result.id}`}
