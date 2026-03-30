@@ -12,10 +12,6 @@ class AIExtensionDetector {
     this.maxStrikes = options.maxStrikes || 3;
     this.onStrike = options.onStrike || (() => {});
     this.onLimitReached = options.onLimitReached || (() => {});
-    this.aiKeywords = [
-      'copilot', 'chatgpt', 'claude', 'gemini', 'gpt', 'openai',
-      'anthropic', 'perplexity', 'bard', 'deepseek', 'llama'
-    ];
   }
 
   /**
@@ -29,11 +25,147 @@ class AIExtensionDetector {
     this.detectSuspiciousNetwork();
     this.detectContextMenu();
     this.monitorFocusChange();
+    this.injectStyles();
+    this.disableBrowserShortcuts();
   }
 
   /**
-   * Detect Copilot & AI shortcuts (Ctrl+I, Ctrl+Shift+I, Cmd+I)
+   * Inject professional CSS for warnings
    */
+  injectStyles() {
+    if (document.getElementById('ai-detector-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'ai-detector-styles';
+    style.innerHTML = `
+      @keyframes ai-shake {
+        0%, 100% { transform: translate(-50%, -50%); }
+        10%, 30%, 50%, 70%, 90% { transform: translate(-52%, -50%); }
+        20%, 40%, 60%, 80% { transform: translate(-48%, -50%); }
+      }
+
+      @keyframes ai-fade-in {
+        from { opacity: 0; transform: translate(-50%, -60%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+      }
+
+      .ai-warning-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        z-index: 99998;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: ai-fade-in 0.3s ease-out;
+      }
+
+      .ai-warning-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        width: 90%;
+        max-width: 450px;
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        z-index: 99999;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        animation: ai-shake 0.5s ease-in-out;
+      }
+
+      .ai-icon-container {
+        width: 80px;
+        height: 80px;
+        background: #FEF2F2;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 24px;
+        color: #EF4444;
+      }
+
+      .ai-warning-title {
+        color: #111827;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 12px;
+        letter-spacing: -0.025em;
+      }
+
+      .ai-warning-text {
+        color: #4B5563;
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 30px;
+      }
+
+      .ai-strikes-container {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .ai-strike-dot {
+        width: 48px;
+        height: 8px;
+        border-radius: 4px;
+        background: #E5E7EB;
+        transition: all 0.3s ease;
+      }
+
+      .ai-strike-dot.active {
+        background: #EF4444;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+      }
+
+      .ai-warning-footer {
+        margin-top: 32px;
+        font-size: 13px;
+        color: #9CA3AF;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      /* Disable text selection */
+      body.exam-session {
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.classList.add('exam-session');
+  }
+
+  /**
+   * Disable common cheating shortcuts
+   */
+  disableBrowserShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Disable Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+P, Ctrl+S
+      const isCheatingShortcut = (e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a', 'p', 's'].includes(e.key.toLowerCase());
+      
+      if (isCheatingShortcut) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.showWarningToast('⛔ Typing shortcuts are disabled during the exam.');
+      }
+    }, true);
+  }
+
   detectCopilotShortcuts() {
     document.addEventListener('keydown', (e) => {
       const isCopilotShortcut = 
@@ -44,268 +176,212 @@ class AIExtensionDetector {
 
       if (isCopilotShortcut) {
         e.preventDefault();
-        e.stopPropagation();
-        this.logAIEvent('COPILOT_SHORTCUT_ATTEMPT', {
-          key: e.key,
-          timestamp: new Date().toISOString()
-        });
-        return false;
+        this.logAIEvent('COPILOT_SHORTCUT_ATTEMPT', { key: e.key });
       }
     }, true);
   }
 
-  /**
-   * Detect clipboard access
-   */
   detectClipboardAccess() {
-    document.addEventListener('copy', () => {
-      const selectedText = window.getSelection().toString();
-      if (selectedText.length > 200) {
-        this.logAIEvent('SUSPICIOUS_CLIPBOARD_COPY', {
-          textLength: selectedText.length,
-          timestamp: new Date().toISOString()
-        });
-      }
-    });
+    // ⛔ DISABLE COPY
+    document.addEventListener('copy', (e) => {
+      e.preventDefault();
+      this.showWarningToast('⛔ Copying is disabled during the exam.');
+      this.logAIEvent('CLIPBOARD_COPY_ATTEMPT');
+    }, true);
 
-    document.addEventListener('paste', () => {
-      this.logAIEvent('CLIPBOARD_PASTE_ATTEMPT', {
-        timestamp: new Date().toISOString()
-      });
-    });
+    // ⛔ DISABLE PASTE
+    document.addEventListener('paste', (e) => {
+      e.preventDefault();
+      this.showWarningToast('⛔ Pasting is disabled during the exam.');
+      this.logAIEvent('CLIPBOARD_PASTE_ATTEMPT');
+    }, true);
+
+    // ⛔ DISABLE CUT
+    document.addEventListener('cut', (e) => {
+      e.preventDefault();
+      this.logAIEvent('CLIPBOARD_CUT_ATTEMPT');
+    }, true);
   }
 
-  /**
-   * Detect AI extensions trying to interact with page
-   */
   detectExtensionRequests() {
     const self = this;
-
     if (typeof chrome !== 'undefined' && chrome.runtime) {
-      const originalSendMessage = chrome.runtime.sendMessage;
       chrome.runtime.sendMessage = function (...args) {
-        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
-          args: args,
-          timestamp: new Date().toISOString()
-        });
-        console.warn('Extension communication blocked during exam');
+        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT');
         return null;
       };
     } else if (typeof browser !== 'undefined' && browser.runtime) {
-      // Support for Firefox/other browsers using 'browser' namespace
-      const originalSendMessage = browser.runtime.sendMessage;
       browser.runtime.sendMessage = function (...args) {
-        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
-          args: args,
-          timestamp: new Date().toISOString()
-        });
+        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT');
         return null;
       };
     }
-
-    window.addEventListener('message', (e) => {
-      const data = e.data || {};
-      const source = e.source || e.origin;
-      
-      const isAIExtension = 
-        source?.includes('extension://') ||
-        data.type?.includes('AI') ||
-        data.source?.includes('copilot') ||
-        data.source?.includes('chatgpt');
-
-      if (isAIExtension) {
-        self.logAIEvent('AI_EXTENSION_DETECTED', {
-          source: source,
-          timestamp: new Date().toISOString()
-        });
-      }
-    });
   }
 
-  /**
-   * Detect browser DevTools opening
-   */
   detectBrowserDevTools() {
     setInterval(() => {
       const start = performance.now();
       debugger; 
-      const end = performance.now();
-
-      if (end - start > 100) {
-        this.logAIEvent('DEVTOOLS_DETECTED', {
-          pauseDuration: end - start,
-          timestamp: new Date().toISOString()
-        });
-      }
+      if (performance.now() - start > 100) this.logAIEvent('DEVTOOLS_DETECTED');
     }, 2000);
   }
 
-  /**
-   * Monitor network requests for AI API calls
-   */
   detectSuspiciousNetwork() {
     const originalFetch = window.fetch;
     const self = this;
-
     window.fetch = function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
-      
       if (self.isAIAPICall(url)) {
-        self.logAIEvent('AI_API_REQUEST_BLOCKED', {
-          url: url,
-          timestamp: new Date().toISOString()
-        });
-        return Promise.reject(new Error('AI API calls not allowed during exam'));
+        self.logAIEvent('AI_API_REQUEST_BLOCKED');
+        return Promise.reject(new Error('Blocked'));
       }
-
       return originalFetch.apply(this, args);
     };
   }
 
   isAIAPICall(url) {
-    const aiAPIs = [
-      'openai.com/api', 'api.openai.com', 'anthropic.com/api', 'api.anthropic.com',
-      'google.com/generativeai', 'generativelanguage.googleapis.com', 'api.perplexity.ai',
-      'api.cohere.com', 'api.deepseek.com',
-    ];
-    return aiAPIs.some(api => url.includes(api));
+    return ['openai.com', 'anthropic.com', 'gemini.google.com'].some(api => url.includes(api));
   }
 
-  /**
-   * Detect right-click context menu
-   */
   detectContextMenu() {
-    document.addEventListener('contextmenu', () => {
+    // ⛔ DISABLE RIGHT CLICK
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      this.showWarningToast('⛔ Right-click is disabled.');
+      
       setTimeout(() => {
-        if (document.querySelector('[data-extension]')) {
-          this.logAIEvent('EXTENSION_CONTEXT_MENU_DETECTED', {
-            timestamp: new Date().toISOString()
-          });
-        }
+        if (document.querySelector('[data-extension]')) this.logAIEvent('EXTENSION_CONTEXT_MENU');
       }, 100);
-    });
+    }, true);
   }
 
-  /**
-   * Monitor window focus/blur
-   */
   monitorFocusChange() {
     window.addEventListener('blur', () => {
-      // Only log blur if tab is still visible (to avoid double strike with visibilitychange)
-      if (!document.hidden) {
-        this.logAIEvent('WINDOW_BLUR', {
-          timestamp: new Date().toISOString()
-        });
-      }
+      if (!document.hidden) this.logAIEvent('WINDOW_BLUR');
     });
   }
 
   /**
-   * Log AI extension event to server and handle strikes
+   * Log strike and show the professional modal
    */
   logAIEvent(eventType, data) {
-    // Increment strikes for suspicious activity
-    // We count window blur and AI detections as strikes
     this.strikeCount++;
     const strikesLeft = Math.max(0, this.maxStrikes - this.strikeCount);
 
     const event = {
       type: eventType,
-      data: data,
-      userAgent: navigator.userAgent,
+      data,
       strikeCount: this.strikeCount,
       timestamp: new Date().toISOString()
     };
 
-    console.warn(`[⚠️ STRIKE ${this.strikeCount}/${this.maxStrikes}] ${eventType}`, data);
     this.aiExtensionEvents.push(event);
+    console.warn(`[⚠️ STRIKE ${this.strikeCount}/${this.maxStrikes}] ${eventType}`);
 
-    // Show warning with strikes left
-    if (strikesLeft > 0) {
-      this.showWarning(`⚠️ Warning: Suspicious activity detected! (${strikesLeft} strikes left before auto-submit)`);
-      this.onStrike(this.strikeCount, strikesLeft);
-    } else {
-      this.showWarning('❌ LIMIT REACHED: Exam will be automatically submitted now!');
+    if (this.strikeCount >= this.maxStrikes) {
+      this.showProfessionalModal('Academic Integrity Violation', 'Maximum limit of suspicious activities reached. The exam is being submitted automatically.', true);
       this.onLimitReached();
+    } else {
+      this.showProfessionalModal('Suspicious Activity Detected', `System has detected actions that violate academic integrity. Please maintain focus on the exam.`, false);
+      this.onStrike(this.strikeCount, strikesLeft);
     }
 
-    // Send to server
     this.sendEventToServer(event);
   }
 
-  /**
-   * Send event to backend
-   */
   async sendEventToServer(event) {
     try {
-      const payload = {
-        ...event,
-        student_id: this.studentId,
-        exam_id: this.examId
-      };
-
       await fetch(`${import.meta.env.VITE_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...event, student_id: this.studentId, exam_id: this.examId })
       });
-    } catch (error) {
-      console.error('[❌ AI EVENT ERROR]', error);
+    } catch (e) {}
+  }
+
+  /**
+   * Show a high-end professional modal
+   */
+  showProfessionalModal(title, text, isCritical) {
+    // Clear existing
+    document.querySelectorAll('.ai-warning-overlay').forEach(e => e.remove());
+
+    const overlay = document.createElement('div');
+    overlay.className = 'ai-warning-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'ai-warning-modal';
+    
+    const icon = isCritical ? '🚫' : '⚠️';
+    const strikesLeft = this.maxStrikes - this.strikeCount;
+
+    modal.innerHTML = `
+      <div class="ai-icon-container" style="${isCritical ? 'background: #FEE2E2; color: #B91C1C;' : ''}">
+        <span style="font-size: 40px;">${icon}</span>
+      </div>
+      <h2 class="ai-warning-title">${title}</h2>
+      <p class="ai-warning-text">${text}</p>
+      
+      ${!isCritical ? `
+        <div class="ai-strikes-container">
+          ${Array.from({ length: this.maxStrikes }).map((_, i) => `
+            <div class="ai-strike-dot ${i < this.strikeCount ? 'active' : ''}"></div>
+          `).join('')}
+        </div>
+        <div class="ai-warning-footer">${strikesLeft} strikes remaining</div>
+      ` : `
+        <div class="ai-warning-footer" style="color: #B91C1C;">AUTO-SUBMITTING NOW...</div>
+      `}
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Auto close only if not critical
+    if (!isCritical) {
+      setTimeout(() => {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => overlay.remove(), 500);
+      }, 5000);
     }
   }
 
   /**
-   * Show warning to student
+   * Show a smaller, non-strike toast for blocked actions
    */
-  showWarning(message) {
-    // Remove existing warnings
-    const existing = document.querySelectorAll('.ai-warning-toast');
-    existing.forEach(e => e.remove());
+  showWarningToast(message) {
+    // Check if a toast is already there
+    if (document.querySelector('.ai-toast-small')) return;
 
-    const warning = document.createElement('div');
-    warning.className = 'ai-warning-toast';
-    warning.style.cssText = `
+    const toast = document.createElement('div');
+    toast.className = 'ai-toast-small';
+    toast.style.cssText = `
       position: fixed;
-      top: 50%;
+      bottom: 40px;
       left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #f44336;
+      transform: translateX(-50%);
+      background: #111827;
       color: white;
-      padding: 30px 40px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 20px;
-      z-index: 99999;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-      text-align: center;
-      border: 4px solid white;
-      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+      padding: 12px 24px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 999999;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     `;
-    
-    // Add shake animation
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @keyframes shake {
-        10%, 90% { transform: translate3d(-50%, -50%, 0) translate3d(-4px, 0, 0); }
-        20%, 80% { transform: translate3d(-50%, -50%, 0) translate3d(8px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-50%, -50%, 0) translate3d(-10px, 0, 0); }
-        40%, 60% { transform: translate3d(-50%, -50%, 0) translate3d(10px, 0, 0); }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    warning.textContent = message;
-    document.body.appendChild(warning);
+    toast.textContent = message;
+    document.body.appendChild(toast);
 
-    setTimeout(() => warning.remove(), 6000);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => toast.remove(), 500);
+    }, 3000);
   }
 
   getSummary() {
-    return {
-      totalAIEvents: this.aiExtensionEvents.length,
-      strikeCount: this.strikeCount,
-      events: this.aiExtensionEvents
-    };
+    return { totalAIEvents: this.aiExtensionEvents.length, strikeCount: this.strikeCount, events: this.aiExtensionEvents };
   }
 }
 
