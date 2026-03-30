@@ -163,10 +163,10 @@ export default function ExamResults() {
                       className="progress-fill"
                       style={{
                         width: `${Number(result.percentage) || 0}%`,
-                        backgroundColor: \"#4caf50\",
+                        backgroundColor: "#4caf50",
                       }}
                     ></div>
-                    <span className=\"progress-text\">{Number(result.percentage || 0).toFixed(2)}%</span>
+                    <span className="progress-text">{Number(result.percentage || 0).toFixed(2)}%</span>
                   </div>
                 </td>
                 <td>{new Date(result.attempted_at || result.submitted_at).toLocaleString()}</td>
