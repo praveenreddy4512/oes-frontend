@@ -276,7 +276,7 @@ class AIExtensionDetector {
 
       console.log(`[📤 SENDING AI EVENT] Type: ${event.type}, Student: ${this.studentId}, Exam: ${this.examId}`);
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/submissions/ai-detection`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
