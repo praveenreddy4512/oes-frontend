@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost, setToken } from "../utils/api.js";
+import logo from "../assets/logo.png";
 import "../styles/login.css";
 
 export default function LoginPage({ onLogin }) {
@@ -45,9 +46,10 @@ export default function LoginPage({ onLogin }) {
     <main className="login-page">
       <section className="login-card">
         <div className="login-header">
-          <h1>📚 OES</h1>
-          <p className="title">Online Examination System</p>
-          <p className="subtitle">Login Portal</p>
+          <div className="logo-container">
+            <img src={logo} alt="OES Logo" className="login-logo" />
+          </div>
+          <p className="subtitle">Enter your credentials to access the portal</p>
         </div>
 
         <form onSubmit={onSubmit} className="login-form">

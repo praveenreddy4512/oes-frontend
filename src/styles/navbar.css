@@ -18,21 +18,17 @@
 .navbar-left {
   display: flex;
   align-items: center;
+  transition: var(--transition);
 }
 
-.navbar-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--primary);
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-  font-family: var(--font-heading);
-  background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(175, 12, 62, 0.1));
+.navbar-left:hover {
+  opacity: 0.8;
+}
+
+.navbar-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
 }
 
 .navbar-center {

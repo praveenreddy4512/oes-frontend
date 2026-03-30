@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { clearToken } from "../utils/api.js";
+import logo from "../assets/logo.png";
 import "../styles/navbar.css";
 
 export default function Navbar({ user, onLogout }) {
@@ -52,8 +53,8 @@ export default function Navbar({ user, onLogout }) {
 
   return (
     <nav className="navbar">
-      <div className="navbar-left">
-        <h2 className="navbar-title">📚 OES</h2>
+      <div className="navbar-left" onClick={() => navigate("/dashboard")} style={{ cursor: 'pointer' }}>
+        <img src={logo} alt="OES Logo" className="navbar-logo" />
       </div>
 
       <div className="navbar-center">
