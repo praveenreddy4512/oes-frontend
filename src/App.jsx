@@ -17,6 +17,7 @@ import ExamEditor from "./pages/ExamEditor";
 import TakeExam from "./pages/TakeExam";
 import AdminUsers from "./pages/AdminUsers";
 import AdminExams from "./pages/AdminExams";
+import AdminGroups from "./pages/AdminGroups";
 import AdminSettings from "./pages/AdminSettings";
 import AdminStatistics from "./pages/AdminStatistics";
 import ExamResults from "./pages/ExamResults";
@@ -146,6 +147,10 @@ export default function App() {
           <Route
             path="/admin/exams"
             element={user && user.role === "admin" ? <AdminExams /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/admin/groups"
+            element={user && user.role === "admin" ? <AdminGroups /> : <Navigate to="/" />}
           />
           <Route
             path="/admin/statistics"
