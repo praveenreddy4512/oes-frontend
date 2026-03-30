@@ -51,10 +51,16 @@ export default function TakeExam({ user }) {
     if (!submission || submitted) return;
 
     // Initialize AI Extension Detector
-    if (!aiDetectorRef.current) {
-      aiDetectorRef.current = new AIExtensionDetector(user?.id, examId);
+    if (!aiDetectorRef.current && user?.id && examId) {
+      aiDetectorRef.current = new AIExtensionDetector(user.id, examId, {
+        maxStrikes: 3,
+        onLimitReached: () => {
+          console.error('⛔ MAX STRIKES REACHED - AUTO SUBMITTING EXAM');
+          handleAutoSubmit();
+        }
+      });
       aiDetectorRef.current.init();
-      console.log('✅ AI Extension Detector initialized');
+      console.log('✅ AI Extension Detector initialized with 3 strikes');
     }
 
     // Log exam started event
@@ -68,6 +74,11 @@ export default function TakeExam({ user }) {
       if (document.hidden) {
         console.warn('⚠️ Student switched away from exam tab!');
         tabSwitchCountRef.current++;
+        if (aiDetectorRef.current) {
+          aiDetectorRef.current.logAIEvent('TAB_SWITCHED_AWAY', { 
+            tabSwitchCount: tabSwitchCountRef.current 
+          });
+        }
         logEvent({
           event_type: 'tab_switched',
           event_details: { 
@@ -245,6 +256,23 @@ export default function TakeExam({ user }) {
     });
   };
 
+  const handleAutoSubmit = async () => {
+    if (submitted) return;
+    
+    // Create a special auto-submit event first
+    await logEvent({
+      event_type: 'suspicious_activity_auto_submit',
+      event_details: { 
+        reason: 'Max strikes reached in AI Extension Detector',
+        tabSwitches: tabSwitchCountRef.current,
+        totalStrikes: aiDetectorRef.current?.strikeCount || 3
+      }
+    });
+
+    // Directly call the final submission logic WITHOUT confirmation
+    await executeFinalSubmission();
+  };
+
   const handleSubmit = async () => {
     if (!submission || !submission.submission_id) {
       alert("Error: Submission was not properly initialized. Please reload the page.");
@@ -252,21 +280,21 @@ export default function TakeExam({ user }) {
     }
     
     if (!confirm("Are you sure you want to submit?")) return;
+    
+    await executeFinalSubmission();
+  };
 
+  const executeFinalSubmission = async () => {
     try {
-      // Submit all answers
+      // Submit all answers first to ensure they are saved
       for (const [questionId, selectedOption] of Object.entries(answers)) {
-        const ansRes = await apiPost(
+        await apiPost(
           `/api/submissions/${submission.submission_id}/answer`,
           {
             question_id: questionId,
             selected_option: selectedOption,
           }
-        );
-        if (!ansRes.ok) {
-          const error = await ansRes.json();
-          throw new Error(`Failed to submit answer: ${error.error || ansRes.statusText}`);
-        }
+        ).catch(err => console.warn(`Failed to save answer for ${questionId}:`, err));
       }
 
       // Finalize submission
@@ -274,16 +302,16 @@ export default function TakeExam({ user }) {
         `/api/submissions/${submission.submission_id}/submit`,
         {}
       );
+      
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || "Failed to finalize submission");
       }
+      
       const result = await res.json();
+      const aiSummary = aiDetectorRef.current?.getSummary();
       
-      // Get AI Detection Summary
-      const aiDetectionSummary = aiDetectorRef.current ? aiDetectorRef.current.getSummary() : null;
-      
-      // ✅ NEW: Log exam submitted event BEFORE setting submitted flag
+      // Log completion event
       await logEvent({
         event_type: 'exam_submitted',
         event_details: {
@@ -291,18 +319,16 @@ export default function TakeExam({ user }) {
           totalQuestions: result.total_questions,
           percentage: result.percentage,
           tabSwitches: tabSwitchCountRef.current,
-          pageRefreshes: pageRefreshCountRef.current,
-          aiDetection: aiDetectionSummary
+          aiDetection: aiSummary
         }
       });
       
-      // NOW set submitted flag to stop all further event capture
       setSubmitted(true);
-      alert(
-        `Exam submitted! Score: ${result.correct_answers}/${result.total_questions} (${result.percentage}%)`
-      );
+      if (!aiDetectorRef.current?.strikeCount >= 3) {
+        alert(`Exam submitted! Score: ${result.correct_answers}/${result.total_questions}`);
+      }
     } catch (err) {
-      alert("Error submitting exam: " + err.message);
+      alert("Error during submission: " + err.message);
     }
   };
 

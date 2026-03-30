@@ -1,24 +1,17 @@
 /**
  * AI Extension & Copilot Detection System
  * Detects and blocks AI tools during exam sessions
- * 
- * Detects:
- * - Copilot in Edge (Ctrl+I, Ctrl+Shift+I)
- * - ChatGPT extensions
- * - Claude extensions
- * - Gemini extensions
- * - Clipboard access to AI services
- * - Suspicious network requests
  */
 
 class AIExtensionDetector {
-  constructor(studentId, examId) {
+  constructor(studentId, examId, options = {}) {
     this.studentId = studentId;
     this.examId = examId;
     this.aiExtensionEvents = [];
-    this.suspiciousActivities = [];
-    this.copilotAttempts = 0;
-    this.clipboardAccessAttempts = 0;
+    this.strikeCount = 0;
+    this.maxStrikes = options.maxStrikes || 3;
+    this.onStrike = options.onStrike || (() => {});
+    this.onLimitReached = options.onLimitReached || (() => {});
     this.aiKeywords = [
       'copilot', 'chatgpt', 'claude', 'gemini', 'gpt', 'openai',
       'anthropic', 'perplexity', 'bard', 'deepseek', 'llama'
@@ -54,38 +47,28 @@ class AIExtensionDetector {
         e.stopPropagation();
         this.logAIEvent('COPILOT_SHORTCUT_ATTEMPT', {
           key: e.key,
-          ctrl: e.ctrlKey,
-          meta: e.metaKey,
-          shift: e.shiftKey,
           timestamp: new Date().toISOString()
         });
-        this.copilotAttempts++;
-        this.showWarning('Copilot & AI tools are disabled during exam');
         return false;
       }
     }, true);
   }
 
   /**
-   * Detect clipboard access (students copying to use with AI)
+   * Detect clipboard access
    */
   detectClipboardAccess() {
-    document.addEventListener('copy', (e) => {
+    document.addEventListener('copy', () => {
       const selectedText = window.getSelection().toString();
-      
-      // Flag if copying large amount of text or image
       if (selectedText.length > 200) {
-        this.clipboardAccessAttempts++;
         this.logAIEvent('SUSPICIOUS_CLIPBOARD_COPY', {
           textLength: selectedText.length,
-          preview: selectedText.substring(0, 100),
           timestamp: new Date().toISOString()
         });
       }
     });
 
-    // Detect paste attempts
-    document.addEventListener('paste', (e) => {
+    document.addEventListener('paste', () => {
       this.logAIEvent('CLIPBOARD_PASTE_ATTEMPT', {
         timestamp: new Date().toISOString()
       });
@@ -96,28 +79,34 @@ class AIExtensionDetector {
    * Detect AI extensions trying to interact with page
    */
   detectExtensionRequests() {
-    const self = this; // Capture 'this' context
+    const self = this;
 
-    // Intercept Extension Message Passing
-    if (chrome && chrome.runtime) {
+    if (typeof chrome !== 'undefined' && chrome.runtime) {
       const originalSendMessage = chrome.runtime.sendMessage;
-      chrome.runtime.sendMessage = function(...args) {
+      chrome.runtime.sendMessage = function (...args) {
         self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
           args: args,
           timestamp: new Date().toISOString()
         });
-        // Block extension messages during exam
         console.warn('Extension communication blocked during exam');
+        return null;
+      };
+    } else if (typeof browser !== 'undefined' && browser.runtime) {
+      // Support for Firefox/other browsers using 'browser' namespace
+      const originalSendMessage = browser.runtime.sendMessage;
+      browser.runtime.sendMessage = function (...args) {
+        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
+          args: args,
+          timestamp: new Date().toISOString()
+        });
         return null;
       };
     }
 
-    // Monitor window messages from extensions
     window.addEventListener('message', (e) => {
       const data = e.data || {};
       const source = e.source || e.origin;
       
-      // Check for AI extension patterns
       const isAIExtension = 
         source?.includes('extension://') ||
         data.type?.includes('AI') ||
@@ -127,8 +116,6 @@ class AIExtensionDetector {
       if (isAIExtension) {
         self.logAIEvent('AI_EXTENSION_DETECTED', {
           source: source,
-          dataType: data.type,
-          dataSource: data.source,
           timestamp: new Date().toISOString()
         });
       }
@@ -136,15 +123,14 @@ class AIExtensionDetector {
   }
 
   /**
-   * Detect browser DevTools opening (can be used with extensions)
+   * Detect browser DevTools opening
    */
   detectBrowserDevTools() {
-    const devToolsCheck = setInterval(() => {
+    setInterval(() => {
       const start = performance.now();
-      debugger; // This pauses if DevTools is open
+      debugger; 
       const end = performance.now();
 
-      // If pause was >100ms, DevTools likely open
       if (end - start > 100) {
         this.logAIEvent('DEVTOOLS_DETECTED', {
           pauseDuration: end - start,
@@ -159,18 +145,16 @@ class AIExtensionDetector {
    */
   detectSuspiciousNetwork() {
     const originalFetch = window.fetch;
-    const self = this; // Capture 'this' context
+    const self = this;
 
-    window.fetch = function(...args) {
+    window.fetch = function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
       
-      // Check if URL is an AI API call
       if (self.isAIAPICall(url)) {
         self.logAIEvent('AI_API_REQUEST_BLOCKED', {
           url: url,
           timestamp: new Date().toISOString()
         });
-        // Block the request
         return Promise.reject(new Error('AI API calls not allowed during exam'));
       }
 
@@ -178,34 +162,22 @@ class AIExtensionDetector {
     };
   }
 
-  /**
-   * Check if URL is an AI service
-   */
   isAIAPICall(url) {
     const aiAPIs = [
-      'openai.com/api',
-      'api.openai.com',
-      'anthropic.com/api',
-      'api.anthropic.com',
-      'google.com/generativeai',
-      'generativelanguage.googleapis.com',
-      'api.perplexity.ai',
-      'api.cohere.com',
-      'api.deepseek.com',
+      'openai.com/api', 'api.openai.com', 'anthropic.com/api', 'api.anthropic.com',
+      'google.com/generativeai', 'generativelanguage.googleapis.com', 'api.perplexity.ai',
+      'api.cohere.com', 'api.deepseek.com',
     ];
-
     return aiAPIs.some(api => url.includes(api));
   }
 
   /**
-   * Detect right-click context menu (extensions may inject options)
+   * Detect right-click context menu
    */
   detectContextMenu() {
-    document.addEventListener('contextmenu', (e) => {
-      // Check for injected extension menu items
+    document.addEventListener('contextmenu', () => {
       setTimeout(() => {
-        const contextMenu = document.querySelector('[data-extension]');
-        if (contextMenu) {
+        if (document.querySelector('[data-extension]')) {
           this.logAIEvent('EXTENSION_CONTEXT_MENU_DETECTED', {
             timestamp: new Date().toISOString()
           });
@@ -215,56 +187,54 @@ class AIExtensionDetector {
   }
 
   /**
-   * Monitor window focus/blur for AI tool usage in another window
+   * Monitor window focus/blur
    */
   monitorFocusChange() {
-    let lastFocusTime = Date.now();
-    let focusSwitchCount = 0;
-
     window.addEventListener('blur', () => {
-      const timeAway = Date.now() - lastFocusTime;
-      focusSwitchCount++;
-      
-      this.logAIEvent('WINDOW_BLUR', {
-        timeAway,
-        focusSwitchCount,
-        timestamp: new Date().toISOString()
-      });
-
-      // Warn if too many focus switches (might be using Copilot in another window)
-      if (focusSwitchCount > 5) {
-        this.logAIEvent('EXCESSIVE_WINDOW_SWITCHING', {
-          count: focusSwitchCount,
+      // Only log blur if tab is still visible (to avoid double strike with visibilitychange)
+      if (!document.hidden) {
+        this.logAIEvent('WINDOW_BLUR', {
           timestamp: new Date().toISOString()
         });
       }
     });
-
-    window.addEventListener('focus', () => {
-      lastFocusTime = Date.now();
-    });
   }
 
   /**
-   * Log AI extension event to server
+   * Log AI extension event to server and handle strikes
    */
   logAIEvent(eventType, data) {
+    // Increment strikes for suspicious activity
+    // We count window blur and AI detections as strikes
+    this.strikeCount++;
+    const strikesLeft = Math.max(0, this.maxStrikes - this.strikeCount);
+
     const event = {
       type: eventType,
       data: data,
       userAgent: navigator.userAgent,
+      strikeCount: this.strikeCount,
       timestamp: new Date().toISOString()
     };
 
-    console.warn(`[⚠️ AI DETECTION] ${eventType}`, data);
+    console.warn(`[⚠️ STRIKE ${this.strikeCount}/${this.maxStrikes}] ${eventType}`, data);
     this.aiExtensionEvents.push(event);
+
+    // Show warning with strikes left
+    if (strikesLeft > 0) {
+      this.showWarning(`⚠️ Warning: Suspicious activity detected! (${strikesLeft} strikes left before auto-submit)`);
+      this.onStrike(this.strikeCount, strikesLeft);
+    } else {
+      this.showWarning('❌ LIMIT REACHED: Exam will be automatically submitted now!');
+      this.onLimitReached();
+    }
 
     // Send to server
     this.sendEventToServer(event);
   }
 
   /**
-   * Send event to backend for logging
+   * Send event to backend
    */
   async sendEventToServer(event) {
     try {
@@ -274,25 +244,13 @@ class AIExtensionDetector {
         exam_id: this.examId
       };
 
-      console.log(`[📤 SENDING AI EVENT] Type: ${event.type}, Student: ${this.studentId}, Exam: ${this.examId}`);
-
-      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/submissions/ai-detection`, {
+      await fetch(`${import.meta.env.VITE_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error(`[❌ AI EVENT FAILED] Status: ${response.status}`, errorData);
-      } else {
-        const data = await response.json();
-        console.log(`[✅ AI EVENT STORED] Response:`, data);
-      }
     } catch (error) {
-      console.error('[❌ AI EVENT ERROR] Network error:', error);
+      console.error('[❌ AI EVENT ERROR]', error);
     }
   }
 
@@ -300,50 +258,52 @@ class AIExtensionDetector {
    * Show warning to student
    */
   showWarning(message) {
+    // Remove existing warnings
+    const existing = document.querySelectorAll('.ai-warning-toast');
+    existing.forEach(e => e.remove());
+
     const warning = document.createElement('div');
+    warning.className = 'ai-warning-toast';
     warning.style.cssText = `
       position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #dc3545;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #f44336;
       color: white;
-      padding: 15px 20px;
-      border-radius: 4px;
+      padding: 30px 40px;
+      border-radius: 12px;
       font-weight: bold;
-      z-index: 9999;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-size: 20px;
+      z-index: 99999;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      text-align: center;
+      border: 4px solid white;
+      animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
     `;
+    
+    // Add shake animation
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes shake {
+        10%, 90% { transform: translate3d(-50%, -50%, 0) translate3d(-4px, 0, 0); }
+        20%, 80% { transform: translate3d(-50%, -50%, 0) translate3d(8px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-50%, -50%, 0) translate3d(-10px, 0, 0); }
+        40%, 60% { transform: translate3d(-50%, -50%, 0) translate3d(10px, 0, 0); }
+      }
+    `;
+    document.head.appendChild(style);
+    
     warning.textContent = message;
     document.body.appendChild(warning);
 
-    setTimeout(() => warning.remove(), 5000);
+    setTimeout(() => warning.remove(), 6000);
   }
 
-  /**
-   * Get all detected AI events
-   */
-  getEvents() {
-    return this.aiExtensionEvents;
-  }
-
-  /**
-   * Check if suspicious AI activity detected
-   */
-  hasSuspiciousActivity() {
-    return this.copilotAttempts > 0 || 
-           this.clipboardAccessAttempts > 2 ||
-           this.aiExtensionEvents.length > 0;
-  }
-
-  /**
-   * Get summary for exam report
-   */
   getSummary() {
     return {
       totalAIEvents: this.aiExtensionEvents.length,
-      copilotAttempts: this.copilotAttempts,
-      clipboardAccessAttempts: this.clipboardAccessAttempts,
-      suspiciousActivityDetected: this.hasSuspiciousActivity(),
+      strikeCount: this.strikeCount,
       events: this.aiExtensionEvents
     };
   }
