@@ -266,7 +266,7 @@ class AIExtensionDetector {
    */
   async sendEventToServer(event) {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/exam-events/ai-detection`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
