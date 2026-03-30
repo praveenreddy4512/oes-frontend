@@ -52,7 +52,7 @@ export default function TakeExam({ user }) {
 
     // Initialize AI Extension Detector
     if (!aiDetectorRef.current) {
-      aiDetectorRef.current = new AIExtensionDetector();
+      aiDetectorRef.current = new AIExtensionDetector(user?.id, examId);
       aiDetectorRef.current.init();
       console.log('✅ AI Extension Detector initialized');
     }

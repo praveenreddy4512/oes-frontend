@@ -12,7 +12,9 @@
  */
 
 class AIExtensionDetector {
-  constructor() {
+  constructor(studentId, examId) {
+    this.studentId = studentId;
+    this.examId = examId;
     this.aiExtensionEvents = [];
     this.suspiciousActivities = [];
     this.copilotAttempts = 0;
@@ -266,13 +268,18 @@ class AIExtensionDetector {
    */
   async sendEventToServer(event) {
     try {
+      const payload = {
+        ...event,
+        student_id: this.studentId,
+        exam_id: this.examId
+      };
+
       const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/api/submissions/ai-detection`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(event)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
