@@ -9,6 +9,7 @@ export default function AdminGroups() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingGroup, setEditingGroup] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
   const [groupMembers, setGroupMembers] = useState([]);
@@ -66,20 +67,36 @@ export default function AdminGroups() {
     }
 
     try {
-      const res = await apiPost("/api/groups", formData);
+      const endpoint = editingGroup ? `/api/groups/${editingGroup.id}` : "/api/groups";
+      const method = editingGroup ? apiPut : apiPost;
+      
+      const res = await method(endpoint, formData);
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to create group");
+        throw new Error(err.error || "Failed to save group");
       }
 
-      setSuccess("✅ Group created successfully!");
+      setSuccess(editingGroup ? "✅ Group updated successfully!" : "✅ Group created successfully!");
       setFormData({ name: "", description: "" });
+      setEditingGroup(null);
       setShowForm(false);
       fetchGroups();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleEditGroup = (group) => {
+    setEditingGroup(group);
+    setFormData({ name: group.name, description: group.description });
+    setShowForm(true);
+  };
+
+  const cancelEdit = () => {
+    setEditingGroup(null);
+    setFormData({ name: "", description: "" });
+    setShowForm(false);
   };
 
   const handleDeleteGroup = async (groupId) => {
@@ -143,7 +160,10 @@ export default function AdminGroups() {
           className="btn-primary"
           onClick={() => {
             setShowForm(!showForm);
-            setFormData({ name: "", description: "" });
+            if (!showForm) {
+              setFormData({ name: "", description: "" });
+              setEditingGroup(null);
+            }
           }}
         >
           {showForm ? "Cancel" : "+ Create Group"}
@@ -159,6 +179,7 @@ export default function AdminGroups() {
           className="exam-form"
           style={{ marginBottom: "2rem" }}
         >
+          <h2>{editingGroup ? `Edit Group: ${editingGroup.name}` : "Create New Group"}</h2>
           <div className="form-group">
             <label>Group Name *</label>
             <input
@@ -184,9 +205,20 @@ export default function AdminGroups() {
             />
           </div>
 
-          <button type="submit" className="btn-primary">
-            Create Group
-          </button>
+          <div className="form-actions">
+            <button type="submit" className="btn-primary">
+              {editingGroup ? "Update Group" : "Create Group"}
+            </button>
+            {editingGroup && (
+              <button 
+                type="button" 
+                className="btn-secondary"
+                onClick={cancelEdit}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       )}
 
@@ -211,6 +243,12 @@ export default function AdminGroups() {
                   }}
                 >
                   Manage Members
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={() => handleEditGroup(group)}
+                >
+                  Edit
                 </button>
                 <button
                   className="btn-danger"

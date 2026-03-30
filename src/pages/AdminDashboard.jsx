@@ -19,7 +19,13 @@ export default function AdminDashboard({ user }) {
         </div>
 
         <div className="dashboard-card">
-          <h3>📚 Manage Exams</h3>
+          <h3>�‍👩‍👧‍👦 Manage Groups</h3>
+          <p>Create, edit groups, and manage members</p>
+          <a href="/admin/groups" className="btn-primary">Group Management</a>
+        </div>
+
+        <div className="dashboard-card">
+          <h3>�📚 Manage Exams</h3>
           <p>View and manage all exams</p>
           <a href="/admin/exams" className="btn-primary">Exam Management</a>
         </div>
