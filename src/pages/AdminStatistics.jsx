@@ -50,14 +50,6 @@ export default function AdminStatistics() {
             <h3>{isNaN(stats.avg_percentage) ? 0 : Number(stats.avg_percentage || 0).toFixed(2)}%</h3>
             <p>Avg Percentage</p>
           </div>
-          <div className="stat-card">
-            <h3>{stats.pass_count || 0}</h3>
-            <p>Pass Count</p>
-          </div>
-          <div className="stat-card">
-            <h3>{stats.fail_count || 0}</h3>
-            <p>Fail Count</p>
-          </div>
         </div>
       )}
     </div>

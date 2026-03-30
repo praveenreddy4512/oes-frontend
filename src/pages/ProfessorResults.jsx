@@ -57,16 +57,12 @@ export default function ProfessorResults({ user }) {
     if (examResults.length === 0) {
       return {
         total: 0,
-        passed: 0,
-        failed: 0,
         avgScore: 0,
       };
     }
 
     return {
       total: examResults.length,
-      passed: examResults.filter((r) => r.status === "pass").length,
-      failed: examResults.filter((r) => r.status === "fail").length,
       avgScore: (
         examResults.reduce((sum, r) => sum + Number(r.percentage || 0), 0) /
         examResults.length
@@ -104,8 +100,6 @@ export default function ProfessorResults({ user }) {
         ["Exam Title", exam.title],
         ["Description", exam.description],
         ["Total Submissions", stats.total],
-        ["Passed", stats.passed],
-        ["Failed", stats.failed],
         ["Average Score", `${stats.avgScore}%`],
         [],
         [],
@@ -113,13 +107,12 @@ export default function ProfessorResults({ user }) {
 
       // Results data
       const resultsData = [
-        ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Status"],
+        ["Student Name", "Obtained Marks", "Total Marks", "Percentage"],
         ...examResults.map((result) => [
           result.username,
           Number(result.obtained_marks) || 0,
           Number(result.total_marks) || 0,
           `${Number(result.percentage || 0).toFixed(2)}%`,
-          result.status.toUpperCase(),
         ]),
       ];
 
@@ -128,7 +121,7 @@ export default function ProfessorResults({ user }) {
 
       // Create worksheet
       const worksheet = XLSX.utils.aoa_to_sheet(allData);
-      worksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+      worksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }];
 
       // Add sheet to workbook (use exam title or a safe name)
       const sheetName = exam.title.slice(0, 31).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -194,14 +187,6 @@ export default function ProfessorResults({ user }) {
                   <div className="stat-item">
                     <span className="label">Submissions</span>
                     <span className="value">{stats.total}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Passed</span>
-                    <span className="value success">{stats.passed}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Failed</span>
-                    <span className="value danger">{stats.failed}</span>
                   </div>
                   <div className="stat-item">
                     <span className="label">Avg Score</span>
