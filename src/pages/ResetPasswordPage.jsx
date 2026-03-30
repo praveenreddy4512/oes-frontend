@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
     try {
       const response = await apiPost("/api/reset-password", {
         token,
-        password: formData.password
+        newPassword: formData.password
       });
       const data = await response.json();
 
