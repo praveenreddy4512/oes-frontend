@@ -51,22 +51,20 @@ export default function ExamResults() {
       return;
     }
 
-    // Prepare data for Excel
-    const exportData = [
-      {
-        "Exam Title": exam.title,
-        "Exam Description": exam.description,
-        "Total Submissions": stats.total,
-        "Passed": stats.passed,
-        "Failed": stats.failed,
-        "Average Score": `${stats.avgScore}%`,
-      },
-      {}, // Empty row for spacing
-      {}, // Empty row for spacing
+    // Prepare summary data as array of arrays (not objects)
+    const summaryData = [
+      ["Exam Title", exam.title],
+      ["Exam Description", exam.description],
+      ["Total Submissions", stats.total],
+      ["Passed", stats.passed],
+      ["Failed", stats.failed],
+      ["Average Score", `${stats.avgScore}%`],
+      [],
+      [],
     ];
 
-    // Add column headers
-    const dataWithHeaders = [
+    // Prepare results data as array of arrays
+    const resultsData = [
       ["Student Name", "Obtained Marks", "Total Marks", "Percentage", "Status", "Attempted On"],
       ...filteredResults.map((result) => [
         result.username,
@@ -82,12 +80,12 @@ export default function ExamResults() {
     const workbook = XLSX.utils.book_new();
     
     // Create summary sheet
-    const summaryWorksheet = XLSX.utils.aoa_to_sheet(exportData);
-    summaryWorksheet["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 25 }];
+    const summaryWorksheet = XLSX.utils.aoa_to_sheet(summaryData);
+    summaryWorksheet["!cols"] = [{ wch: 25 }, { wch: 30 }];
     XLSX.utils.book_append_sheet(workbook, summaryWorksheet, "Summary");
 
     // Create results sheet
-    const resultsWorksheet = XLSX.utils.aoa_to_sheet(dataWithHeaders);
+    const resultsWorksheet = XLSX.utils.aoa_to_sheet(resultsData);
     resultsWorksheet["!cols"] = [{ wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 25 }];
     XLSX.utils.book_append_sheet(workbook, resultsWorksheet, "Results");
 
