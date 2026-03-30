@@ -1,18 +1,20 @@
 :root {
-  /* Color Palette */
+  /* Color Palette - Cyber Red Theme */
   --primary: #af0c3e;
-  --primary-hover: #8a0a31;
-  --primary-soft: #fdecef;
-  --secondary: #475569;
+  --primary-hover: #960a35;
+  --primary-dark: #7d082c;
+  --primary-soft: #fdf2f4;
+  --primary-light: #e61a55;
+  --secondary: #0f172a;
   --accent: #f59e0b;
   
   /* Neutral Colors */
-  --bg-main: #f8fafc;
+  --bg-main: #fcfcfd;
   --surface: #ffffff;
-  --text-main: #1e293b;
+  --text-main: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
-  --border-focus: #af0c3e66;
+  --border-focus: #af0c3e44;
   
   /* Status Colors */
   --success: #10b981;
@@ -24,20 +26,20 @@
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --font-heading: 'Outfit', sans-serif;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-premium: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* Shadows - More Premium */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 4px 12px -4px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 20px 50px -12px rgba(175, 12, 62, 0.15), 0 10px 20px -8px rgba(0, 0, 0, 0.05);
   
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
   --radius-full: 9999px;
 
   /* Transitions */
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 * {

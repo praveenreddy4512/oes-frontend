@@ -1,18 +1,18 @@
 .navbar {
-  background-color: var(--surface);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   color: var(--text-main);
-  padding: 0 2rem;
-  height: 72px;
+  padding: 0 4rem;
+  height: 80px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-sm);
-  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   position: sticky;
   top: 0;
-  z-index: 100;
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 1000;
 }
 
 .navbar-left {
@@ -22,28 +22,37 @@
 
 .navbar-title {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 900;
   color: var(--primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
   font-family: var(--font-heading);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(175, 12, 62, 0.1));
 }
 
 .navbar-center {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  background: var(--bg-main);
+  padding: 0.4rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
 }
 
 .navbar-link {
-  background: none;
+  background: transparent;
   border: none;
   color: var(--text-muted);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.6rem 1rem;
-  border-radius: var(--radius-md);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-full);
   transition: var(--transition);
   text-decoration: none;
   display: flex;
@@ -51,52 +60,59 @@
 }
 
 .navbar-link:hover {
-  background-color: var(--primary-soft);
   color: var(--primary);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar-link.active {
-  background-color: var(--primary-soft);
+  background-color: var(--surface);
   color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .role-badge {
   background: var(--primary-soft);
   color: var(--primary);
-  padding: 0.2rem 0.6rem;
+  padding: 0.3rem 0.8rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(175, 12, 62, 0.1);
 }
 
 .logout-btn {
-  background: transparent;
+  background: var(--bg-main);
   border: 1px solid var(--border);
   color: var(--text-main);
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.875rem;
   transition: var(--transition);
 }
 
 .logout-btn:hover {
-  background: var(--bg-main);
-  border-color: var(--text-muted);
+  background: var(--surface);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {
