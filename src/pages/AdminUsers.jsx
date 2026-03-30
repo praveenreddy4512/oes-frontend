@@ -74,42 +74,83 @@ export default function AdminUsers() {
 
       // If creating a student and groups are selected, add them to groups
       let groupsAddedCount = 0;
+      let groupsRemovedCount = 0;
       let groupErrors = [];
       
-      if (!editingUser && newUser.role === "student" && selectedGroups.length > 0) {
-        for (const groupId of selectedGroups) {
+      console.log(`[DEBUG] Saving user: userId=${createdUserId}, selectedGroups=${JSON.stringify(selectedGroups)}`);
+      
+      if (newUser.role === "student" && selectedGroups.length >= 0) {
+        if (!editingUser) {
+          // CREATE MODE: Add student to selected groups
+          console.log(`[DEBUG] CREATE mode - Starting group assignment for ${selectedGroups.length} groups...`);
+          
+          for (const groupId of selectedGroups) {
+            try {
+              const payload = { studentIds: [createdUserId] };
+              console.log(`[DEBUG] POST /api/groups/${groupId}/members with payload:`, payload);
+              
+              const groupRes = await apiPost(`/api/groups/${groupId}/members`, payload);
+              const responseData = await groupRes.json();
+              
+              if (!groupRes.ok) {
+                const errMsg = `Group ${groupId}: ${responseData.error || 'Failed to add'}`;
+                groupErrors.push(errMsg);
+                console.error(`[ERROR] ${errMsg}`);
+              } else {
+                groupsAddedCount++;
+                console.log(`[✅] Group ${groupId} response:`, responseData);
+              }
+            } catch (err) {
+              const errMsg = `Group ${groupId}: ${err.message}`;
+              groupErrors.push(errMsg);
+              console.error(`[ERROR] ${errMsg}`, err);
+            }
+          }
+        } else {
+          // EDIT MODE: Update group assignments (add/remove as needed)
+          console.log(`[DEBUG] EDIT mode - Updating groups for student ${createdUserId}...`);
+          
           try {
-            const groupRes = await apiPost(`/api/groups/${groupId}/members`, {
-              studentIds: [createdUserId]
-            });
+            const payload = { groupIds: selectedGroups };
+            console.log(`[DEBUG] PUT /api/groups/student/${createdUserId}/groups with payload:`, payload);
+            
+            const groupRes = await apiPut(`/api/groups/student/${createdUserId}/groups`, payload);
+            const responseData = await groupRes.json();
             
             if (!groupRes.ok) {
-              const error = await groupRes.json();
-              groupErrors.push(`Group ${groupId}: ${error.error || 'Failed to add'}`);
+              const errMsg = responseData.error || 'Failed to update groups';
+              groupErrors.push(errMsg);
+              console.error(`[ERROR] ${errMsg}`);
             } else {
-              groupsAddedCount++;
-              console.log(`✅ Student ${createdUserId} added to group ${groupId}`);
+              groupsAddedCount = responseData.added || 0;
+              groupsRemovedCount = responseData.removed || 0;
+              console.log(`[✅] Groups updated:`, responseData);
             }
           } catch (err) {
-            groupErrors.push(`Group ${groupId}: ${err.message}`);
-            console.error(`Failed to add student to group ${groupId}:`, err);
+            const errMsg = `Failed to update groups: ${err.message}`;
+            groupErrors.push(errMsg);
+            console.error(`[ERROR] ${errMsg}`, err);
           }
         }
       }
 
       // Show success message with details
       let successMsg = editingUser ? "✅ User updated successfully!" : "✅ User created successfully";
-      if (!editingUser && newUser.role === "student") {
-        if (selectedGroups.length > 0) {
+      if (newUser.role === "student") {
+        if (!editingUser && selectedGroups.length > 0) {
+          // CREATE mode
           successMsg += ` and added to ${groupsAddedCount}/${selectedGroups.length} groups`;
-        } else {
-          successMsg += "!";
+        } else if (editingUser && selectedGroups.length > 0) {
+          // EDIT mode
+          if (groupsAddedCount > 0 || groupsRemovedCount > 0) {
+            successMsg += ` (${groupsAddedCount} added, ${groupsRemovedCount} removed)`;
+          }
         }
       }
       
-      // Show error if group additions failed
+      // Show error if group operations failed
       if (groupErrors.length > 0) {
-        console.warn("⚠️ Group assignment errors:", groupErrors);
+        console.warn("⚠️ Group operation errors:", groupErrors);
       }
       
       setSuccess(successMsg);
@@ -134,7 +175,7 @@ export default function AdminUsers() {
     );
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = async (user) => {
     setEditingUser(user);
     setNewUser({
       username: user.username,
@@ -142,7 +183,28 @@ export default function AdminUsers() {
       role: user.role,
       password: "",
     });
-    setSelectedGroups([]);
+    
+    // If editing a student, fetch their current groups
+    if (user.role === "student") {
+      try {
+        console.log(`[DEBUG] Fetching groups for student ${user.id}...`);
+        const res = await apiGet(`/api/groups/student/${user.id}/groups`);
+        if (res.ok) {
+          const data = await res.json();
+          console.log(`[DEBUG] Student ${user.id} is in groups:`, data);
+          setSelectedGroups(Array.isArray(data) ? data : []);
+        } else {
+          console.warn(`[WARNING] Failed to fetch student groups:`, await res.json());
+          setSelectedGroups([]);
+        }
+      } catch (err) {
+        console.error(`[ERROR] Failed to load student groups:`, err);
+        setSelectedGroups([]);
+      }
+    } else {
+      setSelectedGroups([]);
+    }
+    
     setShowForm(true);
   };
 
