@@ -94,11 +94,13 @@ class AIExtensionDetector {
    * Detect AI extensions trying to interact with page
    */
   detectExtensionRequests() {
+    const self = this; // Capture 'this' context
+
     // Intercept Extension Message Passing
     if (chrome && chrome.runtime) {
       const originalSendMessage = chrome.runtime.sendMessage;
       chrome.runtime.sendMessage = function(...args) {
-        this.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
+        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT', {
           args: args,
           timestamp: new Date().toISOString()
         });
@@ -121,7 +123,7 @@ class AIExtensionDetector {
         data.source?.includes('chatgpt');
 
       if (isAIExtension) {
-        this.logAIEvent('AI_EXTENSION_DETECTED', {
+        self.logAIEvent('AI_EXTENSION_DETECTED', {
           source: source,
           dataType: data.type,
           dataSource: data.source,
@@ -155,13 +157,14 @@ class AIExtensionDetector {
    */
   detectSuspiciousNetwork() {
     const originalFetch = window.fetch;
-    
-    window.fetch = function(...args) {
-      const url = args[0];
-      const isAIAPI = this.isAIAPICall(url);
+    const self = this; // Capture 'this' context
 
-      if (isAIAPI) {
-        this.logAIEvent('AI_API_REQUEST_BLOCKED', {
+    window.fetch = function(...args) {
+      const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
+      
+      // Check if URL is an AI API call
+      if (self.isAIAPICall(url)) {
+        self.logAIEvent('AI_API_REQUEST_BLOCKED', {
           url: url,
           timestamp: new Date().toISOString()
         });
