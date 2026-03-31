@@ -1,6 +1,6 @@
 /**
- * AI Extension & Copilot Detection System
- * Detects and blocks AI tools during exam sessions
+ * AI Extension & Copilot Detection System - V2 (Premium UI)
+ * Detects and blocks AI tools during exam sessions with striking UI
  */
 
 class AIExtensionDetector {
@@ -10,8 +10,8 @@ class AIExtensionDetector {
     this.aiExtensionEvents = [];
     this.strikeCount = 0;
     this.maxStrikes = options.maxStrikes || 3;
-    this.onStrike = options.onStrike || (() => {});
-    this.onLimitReached = options.onLimitReached || (() => {});
+    this.onStrike = options.onStrike || (() => { });
+    this.onLimitReached = options.onLimitReached || (() => { });
   }
 
   /**
@@ -27,262 +27,244 @@ class AIExtensionDetector {
     this.monitorFocusChange();
     this.injectStyles();
     this.disableBrowserShortcuts();
+    console.log('🛡️ AI Security System Active');
   }
 
   /**
-   * Inject professional CSS for warnings
+   * Inject premium CSS for high-end security visuals
    */
   injectStyles() {
     if (document.getElementById('ai-detector-styles')) return;
-    
+
     const style = document.createElement('style');
     style.id = 'ai-detector-styles';
     style.innerHTML = `
-      @keyframes ai-shake {
-        0%, 100% { transform: translate(-50%, -50%); }
-        10%, 30%, 50%, 70%, 90% { transform: translate(-52%, -50%); }
-        20%, 40%, 60%, 80% { transform: translate(-48%, -50%); }
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+
+      @keyframes ai-pulse {
+        0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0)); }
+        50% { transform: translate(-50%, -50%) scale(1.02); filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.4)); }
+        100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0)); }
       }
 
-      @keyframes ai-fade-in {
-        from { opacity: 0; transform: translate(-50%, -60%); }
+      @keyframes ai-slide-up {
+        from { opacity: 0; transform: translate(-50%, -30%); }
         to { opacity: 1; transform: translate(-50%, -50%); }
       }
 
-      .ai-warning-overlay {
+      .ai-security-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(8px);
-        z-index: 99998;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(12px) saturate(180%);
+        z-index: 1000000;
         display: flex;
         justify-content: center;
         align-items: center;
-        animation: ai-fade-in 0.3s ease-out;
+        transition: opacity 0.3s ease;
       }
 
-      .ai-warning-modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
+      .ai-security-card {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         width: 90%;
-        max-width: 450px;
-        border-radius: 24px;
-        padding: 40px;
+        max-width: 480px;
+        border-radius: 32px;
+        padding: 48px 40px;
         text-align: center;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        z-index: 99999;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        animation: ai-shake 0.5s ease-in-out;
+        box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
+        font-family: 'Outfit', sans-serif;
+        position: relative;
+        animation: ai-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
-      .ai-icon-container {
-        width: 80px;
-        height: 80px;
-        background: #FEF2F2;
-        border-radius: 50%;
+      .ai-badge-suspicious {
+        display: inline-block;
+        background: linear-gradient(90deg, #F87171, #EF4444);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+
+      .ai-icon-pulse {
+        width: 96px;
+        height: 96px;
+        background: #FEE2E2;
+        border-radius: 30px;
         display: flex;
         justify-content: center;
         align-items: center;
-        margin: 0 auto 24px;
+        margin: 0 auto 32px;
+        font-size: 48px;
         color: #EF4444;
+        animation: ai-pulse 2s infinite ease-in-out;
       }
 
-      .ai-warning-title {
+      .ai-security-title {
         color: #111827;
-        font-size: 24px;
+        font-size: 28px;
         font-weight: 800;
-        margin-bottom: 12px;
-        letter-spacing: -0.025em;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
       }
 
-      .ai-warning-text {
+      .ai-security-desc {
         color: #4B5563;
         font-size: 16px;
-        line-height: 1.5;
-        margin-bottom: 30px;
+        line-height: 1.6;
+        margin-bottom: 36px;
       }
 
-      .ai-strikes-container {
+      .ai-strike-bar {
         display: flex;
         justify-content: center;
         gap: 12px;
-        margin-top: 20px;
+        margin-bottom: 8px;
       }
 
-      .ai-strike-dot {
-        width: 48px;
-        height: 8px;
-        border-radius: 4px;
-        background: #E5E7EB;
-        transition: all 0.3s ease;
+      .ai-strike-segment {
+        flex: 1;
+        height: 10px;
+        border-radius: 5px;
+        background: #F3F4F6;
+        overflow: hidden;
+        position: relative;
       }
 
-      .ai-strike-dot.active {
-        background: #EF4444;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+      .ai-strike-segment.filled {
+        background: linear-gradient(90deg, #EF4444, #B91C1C);
       }
 
-      .ai-warning-footer {
-        margin-top: 32px;
+      .ai-strike-label {
         font-size: 13px;
+        font-weight: 600;
         color: #9CA3AF;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        margin-top: 12px;
       }
-      
-      /* Disable text selection */
-      body.exam-session {
+
+      .ai-security-timer {
+        position: absolute;
+        bottom: -60px;
+        left: 0;
+        width: 100%;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      /* Disable all text interactions */
+      body.exam-secure {
         user-select: none !important;
         -webkit-user-select: none !important;
         -moz-user-select: none !important;
         -ms-user-select: none !important;
+        cursor: default;
       }
     `;
     document.head.appendChild(style);
-    document.body.classList.add('exam-session');
+    document.body.classList.add('exam-secure');
   }
 
-  /**
-   * Disable common cheating shortcuts
-   */
   disableBrowserShortcuts() {
     document.addEventListener('keydown', (e) => {
-      // Disable Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+P, Ctrl+S
-      const isCheatingShortcut = (e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a', 'p', 's'].includes(e.key.toLowerCase());
-      
-      if (isCheatingShortcut) {
+      const isBlocked = (e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a', 'p', 's'].includes(e.key.toLowerCase());
+      if (isBlocked) {
         e.preventDefault();
-        e.stopPropagation();
-        this.showWarningToast('⛔ Typing shortcuts are disabled during the exam.');
+        this.logAIEvent('RESTRICTED_KEYBOARD_SHORTCUT', { key: e.key });
       }
     }, true);
   }
 
   detectCopilotShortcuts() {
     document.addEventListener('keydown', (e) => {
-      const isCopilotShortcut = 
-        (e.ctrlKey || e.metaKey) && e.key === 'i' ||
-        (e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'i' ||
-        (e.ctrlKey || e.metaKey) && e.key === '?' ||
-        (e.ctrlKey || e.metaKey) && e.altKey && e.key === 'i';
-
-      if (isCopilotShortcut) {
+      const isCopilot = (e.ctrlKey || e.metaKey) && ['i', '?'].includes(e.key.toLowerCase());
+      if (isCopilot) {
         e.preventDefault();
-        this.logAIEvent('COPILOT_SHORTCUT_ATTEMPT', { key: e.key });
+        this.logAIEvent('AI_INTEGRATION_SHORTCUT');
       }
     }, true);
   }
 
   detectClipboardAccess() {
-    // ⛔ DISABLE COPY
     document.addEventListener('copy', (e) => {
       e.preventDefault();
-      this.showWarningToast('⛔ Copying is disabled during the exam.');
-      this.logAIEvent('CLIPBOARD_COPY_ATTEMPT');
+      this.logAIEvent('SECURITY_BYPASS_COPY');
     }, true);
 
-    // ⛔ DISABLE PASTE
     document.addEventListener('paste', (e) => {
       e.preventDefault();
-      this.showWarningToast('⛔ Pasting is disabled during the exam.');
-      this.logAIEvent('CLIPBOARD_PASTE_ATTEMPT');
-    }, true);
-
-    // ⛔ DISABLE CUT
-    document.addEventListener('cut', (e) => {
-      e.preventDefault();
-      this.logAIEvent('CLIPBOARD_CUT_ATTEMPT');
+      this.logAIEvent('SECURITY_BYPASS_PASTE');
     }, true);
   }
 
   detectExtensionRequests() {
-    const self = this;
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-      chrome.runtime.sendMessage = function (...args) {
-        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT');
-        return null;
-      };
-    } else if (typeof browser !== 'undefined' && browser.runtime) {
-      browser.runtime.sendMessage = function (...args) {
-        self.logAIEvent('EXTENSION_MESSAGE_ATTEMPT');
-        return null;
-      };
-    }
+    const log = (msg) => this.logAIEvent('AI_EXTENSION_TRAFFIC', { msg });
+    if (typeof chrome !== 'undefined' && chrome.runtime) chrome.runtime.sendMessage = () => { log('Chrome'); return null; };
+    if (typeof browser !== 'undefined' && browser.runtime) browser.runtime.sendMessage = () => { log('Firefox'); return null; };
   }
 
   detectBrowserDevTools() {
     setInterval(() => {
       const start = performance.now();
-      debugger; 
-      if (performance.now() - start > 100) this.logAIEvent('DEVTOOLS_DETECTED');
+      debugger;
+      if (performance.now() - start > 100) this.logAIEvent('DEV_TOOLS_OVERLAY');
     }, 2000);
   }
 
   detectSuspiciousNetwork() {
-    const originalFetch = window.fetch;
+    const orig = window.fetch;
     const self = this;
     window.fetch = function (...args) {
       const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || '');
-      if (self.isAIAPICall(url)) {
-        self.logAIEvent('AI_API_REQUEST_BLOCKED');
+      if (['openai', 'anthropic', 'gemini'].some(key => url.includes(key))) {
+        self.logAIEvent('AI_CLOUD_SYNC_DETECTED');
         return Promise.reject(new Error('Blocked'));
       }
-      return originalFetch.apply(this, args);
+      return orig.apply(this, args);
     };
   }
 
-  isAIAPICall(url) {
-    return ['openai.com', 'anthropic.com', 'gemini.google.com'].some(api => url.includes(api));
-  }
-
   detectContextMenu() {
-    // ⛔ DISABLE RIGHT CLICK
     document.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      this.showWarningToast('⛔ Right-click is disabled.');
-      
-      setTimeout(() => {
-        if (document.querySelector('[data-extension]')) this.logAIEvent('EXTENSION_CONTEXT_MENU');
-      }, 100);
+      this.logAIEvent('UNAUTHORIZED_CONTEXT_MENU');
     }, true);
   }
 
   monitorFocusChange() {
     window.addEventListener('blur', () => {
-      if (!document.hidden) this.logAIEvent('WINDOW_BLUR');
+      if (!document.hidden) this.logAIEvent('UNAUTHORIZED_CONTEXT_SWITCH');
     });
   }
 
   /**
-   * Log strike and show the professional modal
+   * Log strike and show the state-of-the-art UI
    */
   logAIEvent(eventType, data) {
     this.strikeCount++;
     const strikesLeft = Math.max(0, this.maxStrikes - this.strikeCount);
 
-    const event = {
-      type: eventType,
-      data,
-      strikeCount: this.strikeCount,
-      timestamp: new Date().toISOString()
-    };
-
+    // Log event data
+    const event = { type: eventType, data, strikeCount: this.strikeCount, timestamp: new Date().toISOString() };
     this.aiExtensionEvents.push(event);
-    console.warn(`[⚠️ STRIKE ${this.strikeCount}/${this.maxStrikes}] ${eventType}`);
 
+    console.error(`[🚨 SECURITY BREACH] Level: HIGH | Count: ${this.strikeCount}/${this.maxStrikes}`);
+
+    // SHOW POPUP FOR EVERY SINGLE EVENT
     if (this.strikeCount >= this.maxStrikes) {
-      this.showProfessionalModal('Academic Integrity Violation', 'Maximum limit of suspicious activities reached. The exam is being submitted automatically.', true);
+      this.showPremiumSecurityModal('Security Breach: Critical', 'The maximum limit for suspicious activity has been exceeded. The system is now initiating an automatic submission to protect exam integrity.', true);
       this.onLimitReached();
     } else {
-      this.showProfessionalModal('Suspicious Activity Detected', `System has detected actions that violate academic integrity. Please maintain focus on the exam.`, false);
+      this.showPremiumSecurityModal('Suspicious Activity: High', 'Unauthorized interaction detected. Your actions have been flagged and recorded by the system. Please remain focused on the exam interface.', false);
       this.onStrike(this.strikeCount, strikesLeft);
     }
 
@@ -296,92 +278,66 @@ class AIExtensionDetector {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...event, student_id: this.studentId, exam_id: this.examId })
       });
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /**
-   * Show a high-end professional modal
+   * High-end Modern Security Overlay
    */
-  showProfessionalModal(title, text, isCritical) {
-    // Clear existing
-    document.querySelectorAll('.ai-warning-overlay').forEach(e => e.remove());
+  showPremiumSecurityModal(title, message, isLast) {
+    document.querySelectorAll('.ai-security-overlay').forEach(e => e.remove());
 
     const overlay = document.createElement('div');
-    overlay.className = 'ai-warning-overlay';
+    overlay.className = 'ai-security-overlay';
 
-    const modal = document.createElement('div');
-    modal.className = 'ai-warning-modal';
-    
-    const icon = isCritical ? '🚫' : '⚠️';
-    const strikesLeft = this.maxStrikes - this.strikeCount;
+    const card = document.createElement('div');
+    card.className = 'ai-security-card';
 
-    modal.innerHTML = `
-      <div class="ai-icon-container" style="${isCritical ? 'background: #FEE2E2; color: #B91C1C;' : ''}">
-        <span style="font-size: 40px;">${icon}</span>
+    const icon = isLast ? '⛔' : '🛡️';
+    const statusText = isLast ? 'ACCOUNT FLAG: CRITICAL' : 'SUSPICIOUS ACTIVITY: HIGH';
+
+    card.innerHTML = `
+      <div class="ai-badge-suspicious" style="${isLast ? 'background: #000;' : ''}">${statusText}</div>
+      <div class="ai-icon-pulse" style="${isLast ? 'background: #111; color: #fff;' : ''}">
+        <span>${icon}</span>
       </div>
-      <h2 class="ai-warning-title">${title}</h2>
-      <p class="ai-warning-text">${text}</p>
+      <h2 class="ai-security-title">${title}</h2>
+      <p class="ai-security-desc">${message}</p>
       
-      ${!isCritical ? `
-        <div class="ai-strikes-container">
-          ${Array.from({ length: this.maxStrikes }).map((_, i) => `
-            <div class="ai-strike-dot ${i < this.strikeCount ? 'active' : ''}"></div>
-          `).join('')}
-        </div>
-        <div class="ai-warning-footer">${strikesLeft} strikes remaining</div>
-      ` : `
-        <div class="ai-warning-footer" style="color: #B91C1C;">AUTO-SUBMITTING NOW...</div>
-      `}
+      <div class="ai-strike-bar">
+        ${Array.from({ length: this.maxStrikes }).map((_, i) => `
+          <div class="ai-strike-segment ${i < this.strikeCount ? 'filled' : ''}"></div>
+        `).join('')}
+      </div>
+      <div class="ai-strike-label">
+        ${isLast ? 'FINAL BREACH RECORDED' : `SECURITY STRIKE ${this.strikeCount} OF ${this.maxStrikes}`}
+      </div>
+
+      <div class="ai-security-timer">This window will dismiss in <span id="security-cd">5</span>s</div>
     `;
 
-    overlay.appendChild(modal);
+    overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    // Auto close only if not critical
-    if (!isCritical) {
-      setTimeout(() => {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => overlay.remove(), 500);
-      }, 5000);
-    }
-  }
-
-  /**
-   * Show a smaller, non-strike toast for blocked actions
-   */
-  showWarningToast(message) {
-    // Check if a toast is already there
-    if (document.querySelector('.ai-toast-small')) return;
-
-    const toast = document.createElement('div');
-    toast.className = 'ai-toast-small';
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #111827;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 500;
-      z-index: 999999;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    `;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.5s ease';
-      setTimeout(() => toast.remove(), 500);
-    }, 3000);
+    // Countdown and auto-dismiss
+    let timeLeft = 5;
+    const interval = setInterval(() => {
+      timeLeft--;
+      if (document.getElementById('security-cd')) {
+        document.getElementById('security-cd').textContent = timeLeft;
+      }
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        if (!isLast) {
+          overlay.style.opacity = '0';
+          setTimeout(() => overlay.remove(), 300);
+        }
+      }
+    }, 1000);
   }
 
   getSummary() {
-    return { totalAIEvents: this.aiExtensionEvents.length, strikeCount: this.strikeCount, events: this.aiExtensionEvents };
+    return { events: this.aiExtensionEvents, strikeCount: this.strikeCount };
   }
 }
 
