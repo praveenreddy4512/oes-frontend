@@ -218,8 +218,9 @@ export default function TakeExam({ user }) {
     try {
       const res = await apiPost('/api/submissions', { exam_id: examId, student_id: user.id });
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || `Failed to start submission: ${res.status}`);
+        const errorData = await res.json();
+        const errorMessage = errorData.message || errorData.error || `Failed to start submission: ${res.status}`;
+        throw new Error(errorMessage);
       }
       const data = await res.json();
       setSubmission(data);
@@ -339,7 +340,34 @@ export default function TakeExam({ user }) {
   };
 
   if (loading) return <div className="page-container"><p>Loading exam...</p></div>;
-  if (error) return <div className="page-container"><p className="error">{error}</p></div>;
+  if (error) {
+    const isIpError = error.toLowerCase().includes('ip') || error.toLowerCase().includes('authorized');
+    return (
+      <div className="page-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <div style={{ 
+          maxWidth: '500px', 
+          width: '100%', 
+          padding: '60px 40px', 
+          background: '#ffffff',
+          borderRadius: '40px',
+          boxShadow: '0 40px 100px -20px rgba(0,0,0,0.15)',
+          textAlign: 'center',
+          borderTop: isIpError ? '6px solid #fbbf24' : '6px solid #ef4444' 
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>{isIpError ? '🔒' : '🛑'}</div>
+          <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '16px', color: '#111827', fontFamily: 'Outfit, sans-serif' }}>
+            {isIpError ? 'Access Restricted' : 'Unable to Start Exam'}
+          </h2>
+          <p style={{ color: '#4b5563', lineHeight: '1.6', fontSize: '16px', marginBottom: '32px', fontFamily: 'Outfit, sans-serif' }}>
+            {error}
+          </p>
+          <button onClick={() => window.location.href = '/dashboard'} className="btn-primary" style={{ width: '100%', padding: '16px' }}>
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (submitted)
     return (
       <div className="page-container">

@@ -7,6 +7,8 @@ export default function CreateExam({ user }) {
     title: "",
     description: "",
     duration_minutes: 60,
+    is_ip_restricted: false,
+    restricted_ip: "",
   });
   const [groups, setGroups] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
@@ -117,7 +119,7 @@ export default function CreateExam({ user }) {
         </div>
 
         <div className="form-row">
-          <div className="form-group">
+          <div className="form-group" style={{ flex: 1 }}>
             <label>Duration (minutes) *</label>
             <input
               type="number"
@@ -128,7 +130,36 @@ export default function CreateExam({ user }) {
               min="1"
             />
           </div>
+
+          <div className="form-group" style={{ flex: 2 }}>
+            <label className="checkbox-label" style={{ marginTop: '32px' }}>
+              <input
+                type="checkbox"
+                name="is_ip_restricted"
+                checked={formData.is_ip_restricted}
+                onChange={(e) => setFormData(prev => ({ ...prev, is_ip_restricted: e.target.checked }))}
+              />
+              <span>🔒 Restrict to Specific IP</span>
+            </label>
+          </div>
         </div>
+
+        {formData.is_ip_restricted && (
+          <div className="form-group animate-fade-in" style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <label>Authorized IP Address(es)</label>
+            <input
+              type="text"
+              name="restricted_ip"
+              value={formData.restricted_ip}
+              onChange={handleChange}
+              placeholder="e.g., 192.168.1.1 or 203.0.113.5 (separate multi-IP with commas)"
+              required={formData.is_ip_restricted}
+            />
+            <small style={{ color: '#64748b', display: 'block', marginTop: '8px' }}>
+              Students can only start this exam if their network IP matches one of these addresses.
+            </small>
+          </div>
+        )}
 
         <div className="form-group">
           <label>Assign to Groups</label>

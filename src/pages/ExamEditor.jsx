@@ -12,6 +12,8 @@ export default function ExamEditor() {
     duration: 60,
     shuffle_questions: false,
     shuffle_options: false,
+    is_ip_restricted: false,
+    restricted_ip: "",
   });
   const [questions, setQuestions] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -102,6 +104,8 @@ export default function ExamEditor() {
         duration_minutes: exam.duration,
         shuffle_questions: exam.shuffle_questions,
         shuffle_options: exam.shuffle_options,
+        is_ip_restricted: exam.is_ip_restricted,
+        restricted_ip: exam.restricted_ip,
       });
       if (!res.ok) {
         const error = await res.json();
@@ -238,17 +242,48 @@ export default function ExamEditor() {
             rows="4"
           />
         </div>
-        <div className="form-group">
-          <label>Duration (minutes)</label>
-          <input
-            type="number"
-            name="duration"
-            value={exam.duration}
-            onChange={handleExamChange}
-            min="1"
-            required
-          />
+        <div className="form-row">
+          <div className="form-group" style={{ flex: 1 }}>
+            <label>Duration (minutes)</label>
+            <input
+              type="number"
+              name="duration"
+              value={exam.duration}
+              onChange={handleExamChange}
+              min="1"
+              required
+            />
+          </div>
+
+          <div className="form-group" style={{ flex: 2 }}>
+            <label className="checkbox-label" style={{ marginTop: '32px' }}>
+              <input
+                type="checkbox"
+                name="is_ip_restricted"
+                checked={exam.is_ip_restricted || false}
+                onChange={handleExamChange}
+              />
+              <span>🔒 Restrict to Specific IP</span>
+            </label>
+          </div>
         </div>
+
+        {exam.is_ip_restricted && (
+          <div className="form-group animate-fade-in" style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <label>Authorized IP Address(es)</label>
+            <input
+              type="text"
+              name="restricted_ip"
+              value={exam.restricted_ip || ""}
+              onChange={handleExamChange}
+              placeholder="e.g., 192.168.1.1 (separate multiple with commas)"
+              required={exam.is_ip_restricted}
+            />
+            <small style={{ color: '#64748b', display: 'block', marginTop: '8px' }}>
+              Students can only start this exam from these network addresses.
+            </small>
+          </div>
+        )}
 
         <div className="form-group checkbox-group">
           <label>
