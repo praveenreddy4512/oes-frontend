@@ -84,7 +84,9 @@ export default function StudentExams({ user }) {
                     try {
                       const utcStr = exam.start_time.replace(' ', 'T');
                       const d = new Date(utcStr + 'Z');
-                      return isNaN(d) ? exam.start_time : d.toLocaleString();
+                      // Convert UTC to IST (UTC+5:30)
+                      const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+                      return isNaN(d) ? exam.start_time : istTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
                     } catch (e) {
                       return exam.start_time;
                     }
@@ -97,7 +99,9 @@ export default function StudentExams({ user }) {
                     try {
                       const utcStr = exam.end_time.replace(' ', 'T');
                       const d = new Date(utcStr + 'Z');
-                      return isNaN(d) ? exam.end_time : d.toLocaleString();
+                      // Convert UTC to IST (UTC+5:30)
+                      const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+                      return isNaN(d) ? exam.end_time : istTime.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
                     } catch (e) {
                       return exam.end_time;
                     }
@@ -111,7 +115,9 @@ export default function StudentExams({ user }) {
                 const startTime = exam.start_time ? (() => {
                   try {
                     const utcStr = exam.start_time.replace(' ', 'T');
-                    return new Date(utcStr + 'Z');
+                    const utcDate = new Date(utcStr + 'Z');
+                    // Convert UTC to IST (UTC+5:30)
+                    return new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
                   } catch (e) {
                     return null;
                   }
@@ -119,7 +125,9 @@ export default function StudentExams({ user }) {
                 const endTime = exam.end_time ? (() => {
                   try {
                     const utcStr = exam.end_time.replace(' ', 'T');
-                    return new Date(utcStr + 'Z');
+                    const utcDate = new Date(utcStr + 'Z');
+                    // Convert UTC to IST (UTC+5:30)
+                    return new Date(utcDate.getTime() + (5.5 * 60 * 60 * 1000));
                   } catch (e) {
                     return null;
                   }

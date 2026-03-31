@@ -61,17 +61,19 @@ export default function CreateExam({ user }) {
     setSuccess("");
 
     try {
-      // Convert local times to UTC for storage
-      const convertLocalToUTC = (localTimeStr) => {
-        if (!localTimeStr) return null;
-        const d = new Date(localTimeStr);
-        return d.toISOString().slice(0, 19).replace('T', ' ');
+      // Convert IST (UTC+5:30) times to UTC for storage
+      const convertISTToUTC = (istTimeStr) => {
+        if (!istTimeStr) return null;
+        const d = new Date(istTimeStr);
+        // IST is UTC+5:30, so subtract 5.5 hours to get UTC
+        const utcTime = new Date(d.getTime() - (5.5 * 60 * 60 * 1000));
+        return utcTime.toISOString().slice(0, 19).replace('T', ' ');
       };
 
       const payload = { 
         ...formData,
-        start_time: convertLocalToUTC(formData.start_time),
-        end_time: convertLocalToUTC(formData.end_time),
+        start_time: convertISTToUTC(formData.start_time),
+        end_time: convertISTToUTC(formData.end_time),
         professor_id: user.id,
         groupIds: selectedGroups
       };
