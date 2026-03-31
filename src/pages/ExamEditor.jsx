@@ -252,7 +252,7 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="start_time"
-              value={exam.start_time ? exam.start_time.substring(0, 16) : ""}
+              value={exam.start_time ? exam.start_time.replace(' ', 'T').substring(0, 16) : ""}
               onChange={handleExamChange}
               required
             />
@@ -264,7 +264,7 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="end_time"
-              value={exam.end_time ? exam.end_time.substring(0, 16) : ""}
+              value={exam.end_time ? exam.end_time.replace(' ', 'T').substring(0, 16) : ""}
               onChange={handleExamChange}
               required
             />

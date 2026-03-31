@@ -126,7 +126,7 @@ export default function CreateExam({ user }) {
             <input
               type="datetime-local"
               name="start_time"
-              value={formData.start_time}
+              value={formData.start_time ? formData.start_time.replace(' ', 'T') : ""}
               onChange={handleChange}
               required
             />
@@ -138,7 +138,7 @@ export default function CreateExam({ user }) {
             <input
               type="datetime-local"
               name="end_time"
-              value={formData.end_time}
+              value={formData.end_time ? formData.end_time.replace(' ', 'T') : ""}
               onChange={handleChange}
               required
             />
