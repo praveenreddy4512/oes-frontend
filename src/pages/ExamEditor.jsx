@@ -108,6 +108,8 @@ export default function ExamEditor() {
         shuffle_options: exam.shuffle_options,
         is_ip_restricted: exam.is_ip_restricted,
         restricted_ip: exam.restricted_ip,
+        start_time: exam.start_time,
+        end_time: exam.end_time,
       });
       if (!res.ok) {
         const error = await res.json();
