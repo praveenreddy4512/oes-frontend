@@ -76,16 +76,17 @@ export default function TakeExam({ user }) {
 
   // ✅ NEW: Log question viewing and track time per question
   useEffect(() => {
-    if (currentQuestion && submission) {
+    const currentQ = shuffledQuestions[currentQuestionIndex];
+    if (currentQ?.id && submission) {
       questionStartTimeRef.current = Date.now();
       
       logEvent({
         event_type: 'question_viewed',
-        question_id: currentQuestion,
-        event_details: { questionId: currentQuestion }
+        question_id: currentQ.id,
+        event_details: { questionId: currentQ.id, index: currentQuestionIndex }
       });
     }
-  }, [currentQuestion, submission]);
+  }, [currentQuestionIndex, submission, shuffledQuestions.length]);
 
   // Centralized authentication error handler
   const handleAuthError = async (response) => {
