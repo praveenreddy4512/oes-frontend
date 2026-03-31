@@ -189,8 +189,9 @@ export default function TakeExam({ user }) {
     try {
       const res = await apiPost('/api/submissions', { exam_id: examId, student_id: user.id });
       if (!res.ok) {
-        const errorData = await res.json();
-        const errorMessage = errorData.message || errorData.error || `Failed to start submission: ${res.status}`;
+        const errorData = await res.json().catch(() => ({}));
+        // Display the specific error message (IP Mismatch, Time Window, etc.)
+        const errorMessage = errorData.message || errorData.error || `Access Denied: ${res.status}`;
         throw new Error(errorMessage);
       }
       const data = await res.json();

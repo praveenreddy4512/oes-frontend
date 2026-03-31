@@ -9,6 +9,8 @@ export default function CreateExam({ user }) {
     duration_minutes: 60,
     is_ip_restricted: false,
     restricted_ip: "",
+    start_time: "",
+    end_time: "",
   });
   const [groups, setGroups] = useState([]);
   const [selectedGroups, setSelectedGroups] = useState([]);
@@ -114,8 +116,34 @@ export default function CreateExam({ user }) {
             value={formData.description}
             onChange={handleChange}
             placeholder="Exam details and instructions"
-            rows="4"
+            rows="3"
           />
+        </div>
+
+        <div className="form-row" style={{ marginBottom: '20px' }}>
+          <div className="form-group">
+            <label>🔓 Exam Starts At (Date & Time)</label>
+            <input
+              type="datetime-local"
+              name="start_time"
+              value={formData.start_time}
+              onChange={handleChange}
+              required
+            />
+            <small className="help-text">Students cannot start before this time.</small>
+          </div>
+
+          <div className="form-group">
+            <label>🔒 Exam Ends At (Date & Time)</label>
+            <input
+              type="datetime-local"
+              name="end_time"
+              value={formData.end_time}
+              onChange={handleChange}
+              required
+            />
+            <small className="help-text">Students cannot start after this time.</small>
+          </div>
         </div>
 
         <div className="form-row">

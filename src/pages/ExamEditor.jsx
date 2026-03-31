@@ -14,6 +14,8 @@ export default function ExamEditor() {
     shuffle_options: false,
     is_ip_restricted: false,
     restricted_ip: "",
+    start_time: "",
+    end_time: "",
   });
   const [questions, setQuestions] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -239,8 +241,35 @@ export default function ExamEditor() {
             name="description"
             value={exam.description}
             onChange={handleExamChange}
-            rows="4"
+            rows="3"
+            placeholder="Exam instructions..."
           />
+        </div>
+
+        <div className="form-row" style={{ marginBottom: '20px' }}>
+          <div className="form-group">
+            <label>🔓 Exam Starts At (Date & Time)</label>
+            <input
+              type="datetime-local"
+              name="start_time"
+              value={exam.start_time ? exam.start_time.substring(0, 16) : ""}
+              onChange={handleExamChange}
+              required
+            />
+            <small className="help-text">Students cannot start before this time.</small>
+          </div>
+
+          <div className="form-group">
+            <label>🔒 Exam Ends At (Date & Time)</label>
+            <input
+              type="datetime-local"
+              name="end_time"
+              value={exam.end_time ? exam.end_time.substring(0, 16) : ""}
+              onChange={handleExamChange}
+              required
+            />
+            <small className="help-text">Students cannot start after this time.</small>
+          </div>
         </div>
         <div className="form-row">
           <div className="form-group" style={{ flex: 1 }}>
