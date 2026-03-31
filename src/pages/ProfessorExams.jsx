@@ -73,12 +73,20 @@ export default function ProfessorExams({ user }) {
               <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                 {exam.start_time ? (
                   <div style={{ color: '#059669', fontWeight: '600' }}>
-                    🔓 {exam.start_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ')}
+                    🔓 {(() => {
+                      const timeStr = exam.start_time;
+                      if (typeof timeStr !== 'string') return String(timeStr);
+                      return timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
+                    })()}
                   </div>
                 ) : <div style={{ color: '#9ca3af' }}>No Start Time</div>}
                 {exam.end_time ? (
                   <div style={{ color: '#dc2626', fontWeight: '600', marginTop: '4px' }}>
-                    🔒 {exam.end_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ')}
+                    🔒 {(() => {
+                      const timeStr = exam.end_time;
+                      if (typeof timeStr !== 'string') return String(timeStr);
+                      return timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
+                    })()}
                   </div>
                 ) : <div style={{ color: '#9ca3af' }}>No End Time</div>}
               </td>

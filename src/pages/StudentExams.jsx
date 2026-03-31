@@ -81,18 +81,20 @@ export default function StudentExams({ user }) {
               {exam.start_time && (
                 <span style={{ fontWeight: '600', color: '#059669' }}>
                   📅 Starts: {(() => {
+                    const timeStr = exam.start_time;
+                    if (typeof timeStr !== 'string') return String(timeStr);
                     // Remove ISO format artifacts and format nicely
-                    let time = exam.start_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
-                    return time;
+                    return timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
                   })()}
                 </span>
               )}
               {exam.end_time && (
                 <span style={{ fontWeight: '600', color: '#dc2626' }}>
                   🕒 Ends: {(() => {
+                    const timeStr = exam.end_time;
+                    if (typeof timeStr !== 'string') return String(timeStr);
                     // Remove ISO format artifacts and format nicely
-                    let time = exam.end_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
-                    return time;
+                    return timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
                   })()}
                 </span>
               )}
@@ -129,8 +131,11 @@ export default function StudentExams({ user }) {
 
                 if (isEarly) {
                   // Extract time directly from the string without timezone conversion
-                  const timeMatch = exam.start_time.match(/(\d{1,2}):(\d{2})/) || exam.start_time.match(/T(\d{1,2}):(\d{2})/);
-                  const displayTime = timeMatch ? `${parseInt(timeMatch[1], 10)}:${timeMatch[2]}` : '';
+                  let displayTime = '';
+                  if (typeof exam.start_time === 'string') {
+                    const timeMatch = exam.start_time.match(/(\d{1,2}):(\d{2})/) || exam.start_time.match(/T(\d{1,2}):(\d{2})/);
+                    displayTime = timeMatch ? `${parseInt(timeMatch[1], 10)}:${timeMatch[2]}` : '';
+                  }
                   return (
                     <button className="btn-secondary" disabled style={{ width: '100%', opacity: 0.7 }}>
                       ⏳ Available at {displayTime}
