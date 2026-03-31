@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost, setToken } from "../utils/api.js";
+import { getDeviceFingerprint } from "../utils/fingerprint.js";
 import logo from "../assets/logo.png";
 import "../styles/login.css";
 
@@ -21,7 +22,11 @@ export default function LoginPage({ onLogin }) {
     setError("");
 
     try {
-      const response = await apiPost("/api/login", formData);
+      // 🔐 Collect device fingerprint
+      const fingerprint = await getDeviceFingerprint();
+      console.log("[🔐 FINGERPRINT] Device identified:", fingerprint);
+
+      const response = await apiPost("/api/login", { ...formData, fingerprint });
       const data = await response.json();
 
       if (!response.ok) {
