@@ -91,12 +91,11 @@ export default function TakeExam({ user }) {
   // Centralized authentication error handler
   const handleAuthError = async (response) => {
     if (response.status === 401) {
+      // ✅ SECURITY: Any 401 means fingerprint mismatch or session expiration
       const data = await response.json().catch(() => ({}));
-      if (data.error === "Session Invalidated" || data.message?.includes("device")) {
-        setError(data.message || "Session invalidated due to login on another device.");
-        if (aiDetectorRef.current) aiDetectorRef.current.stop();
-        return true;
-      }
+      setError(data.message || data.error || "Session invalidated due to login on another device.");
+      if (aiDetectorRef.current) aiDetectorRef.current.stop();
+      return true;
     }
     return false;
   };
