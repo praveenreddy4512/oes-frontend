@@ -55,51 +55,52 @@ class AIExtensionDetector {
       .ai-security-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(16px);
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(20px) saturate(160%);
         z-index: 2000000;
         display: flex;
         justify-content: center;
         align-items: center;
         font-family: 'Outfit', sans-serif;
-        color: white;
+        color: #111827;
       }
 
       .ai-security-card {
-        background: #0A0A0A;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #FFFFFF;
+        border: 1px solid rgba(0, 0, 0, 0.05);
         width: 90%;
         max-width: 440px;
         border-radius: 40px;
         padding: 56px 40px;
         text-align: center;
-        animation: security-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        box-shadow: 0 40px 100px -30px rgba(0,0,0,0.8);
+        animation: security-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15);
       }
 
       .security-icon-box {
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 28px;
+        width: 84px;
+        height: 84px;
+        background: #F3F4F6;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 30px;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 36px;
+        font-size: 38px;
         margin: 0 auto 32px;
       }
 
       .security-title {
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 800;
         margin-bottom: 12px;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.02em;
+        color: #111827;
       }
 
       .security-msg {
         font-size: 16px;
-        color: rgba(255, 255, 255, 0.6);
+        color: #4B5563;
         line-height: 1.6;
         margin-bottom: 40px;
       }
@@ -112,34 +113,35 @@ class AIExtensionDetector {
       }
 
       .strike-dot {
-        width: 44px;
-        height: 8px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 10px;
-        transition: all 0.3s ease;
+        width: 48px;
+        height: 10px;
+        background: #E5E7EB;
+        border-radius: 12px;
+        transition: all 0.4s ease;
       }
 
       .strike-dot.active {
-        background: #EF4444;
-        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        background: #DC2626;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
       }
 
       .strike-dot.pulse {
-        animation: strike-pulse 1.5s infinite;
+        animation: strike-pulse 1.8s infinite;
       }
 
       .strike-text {
         font-size: 12px;
-        font-weight: 700;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: 0.12em;
+        color: #9CA3AF;
       }
 
       .security-footer {
         margin-top: 48px;
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.3);
+        font-weight: 600;
+        color: #9CA3AF;
       }
 
       body.exam-secure {
@@ -258,7 +260,11 @@ class AIExtensionDetector {
       this.onStrike(this.strikeCount, strikesLeft);
     }
 
-    this.sendEventToServer(event);
+    this.sendEventToServer({
+      ...event,
+      allEvents: this.aiExtensionEvents, // Include history for email "reason"
+      isFinalStrike: this.strikeCount >= this.maxStrikes
+    });
   }
 
   async sendEventToServer(event) {
@@ -320,6 +326,9 @@ class AIExtensionDetector {
           overlay.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
           overlay.style.filter = 'blur(10px)';
           setTimeout(() => overlay.remove(), 500);
+        } else {
+          // Final redirect to home page
+          window.location.href = '/dashboard';
         }
       }
     }, 1000);
