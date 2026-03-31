@@ -80,20 +80,34 @@ export default function StudentExams({ user }) {
               <span>⏱️ {exam.duration_minutes} mins</span>
               {exam.start_time && (
                 <span style={{ fontWeight: '600', color: '#059669' }}>
-                  📅 Starts: {new Date(exam.start_time).toLocaleString()}
+                  📅 Starts: {(() => {
+                    const utcStr = exam.start_time.replace(' ', 'T');
+                    const d = new Date(utcStr + 'Z');
+                    return d.toLocaleString();
+                  })()}
                 </span>
               )}
               {exam.end_time && (
                 <span style={{ fontWeight: '600', color: '#dc2626' }}>
-                  🕒 Ends: {new Date(exam.end_time).toLocaleString()}
+                  🕒 Ends: {(() => {
+                    const utcStr = exam.end_time.replace(' ', 'T');
+                    const d = new Date(utcStr + 'Z');
+                    return d.toLocaleString();
+                  })()}
                 </span>
               )}
             </div>
             <div className="exam-card-footer" style={{ marginTop: 'auto', paddingTop: '15px' }}>
               {(() => {
                 const now = new Date();
-                const startTime = exam.start_time ? new Date(exam.start_time) : null;
-                const endTime = exam.end_time ? new Date(exam.end_time) : null;
+                const startTime = exam.start_time ? (() => {
+                  const utcStr = exam.start_time.replace(' ', 'T');
+                  return new Date(utcStr + 'Z');
+                })() : null;
+                const endTime = exam.end_time ? (() => {
+                  const utcStr = exam.end_time.replace(' ', 'T');
+                  return new Date(utcStr + 'Z');
+                })() : null;
                 const isEarly = startTime && now < startTime;
                 const isPast = endTime && now > endTime;
 

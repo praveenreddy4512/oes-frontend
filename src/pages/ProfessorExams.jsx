@@ -73,12 +73,20 @@ export default function ProfessorExams({ user }) {
               <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                 {exam.start_time ? (
                   <div style={{ color: '#059669', fontWeight: '600' }}>
-                    🔓 {new Date(exam.start_time).toLocaleString()}
+                    🔓 {(() => {
+                      const utcStr = exam.start_time.replace(' ', 'T');
+                      const d = new Date(utcStr + 'Z');
+                      return d.toLocaleString();
+                    })()}
                   </div>
                 ) : <div style={{ color: '#9ca3af' }}>No Start Time</div>}
                 {exam.end_time ? (
                   <div style={{ color: '#dc2626', fontWeight: '600', marginTop: '4px' }}>
-                    🔒 {new Date(exam.end_time).toLocaleString()}
+                    🔒 {(() => {
+                      const utcStr = exam.end_time.replace(' ', 'T');
+                      const d = new Date(utcStr + 'Z');
+                      return d.toLocaleString();
+                    })()}
                   </div>
                 ) : <div style={{ color: '#9ca3af' }}>No End Time</div>}
               </td>

@@ -100,6 +100,13 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
+      // Convert local times to UTC for storage
+      const convertLocalToUTC = (localTimeStr) => {
+        if (!localTimeStr) return null;
+        const d = new Date(localTimeStr);
+        return d.toISOString().slice(0, 19).replace('T', ' ');
+      };
+
       const res = await apiPut(`/api/exams/${id}`, {
         title: exam.title,
         description: exam.description,
@@ -108,8 +115,8 @@ export default function ExamEditor() {
         shuffle_options: exam.shuffle_options,
         is_ip_restricted: exam.is_ip_restricted,
         restricted_ip: exam.restricted_ip,
-        start_time: exam.start_time,
-        end_time: exam.end_time,
+        start_time: convertLocalToUTC(exam.start_time),
+        end_time: convertLocalToUTC(exam.end_time),
       });
       if (!res.ok) {
         const error = await res.json();
@@ -255,9 +262,11 @@ export default function ExamEditor() {
               type="datetime-local"
               name="start_time"
               value={exam.start_time ? (() => {
-                const d = new Date(exam.start_time);
+                // Convert UTC string to local datetime-local format
+                const utcStr = exam.start_time.replace(' ', 'T');
+                const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
                 const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
+                return new Date(d.getTime() + offset).toISOString().substring(0, 16);
               })() : ""}
               onChange={handleExamChange}
               required
@@ -271,9 +280,11 @@ export default function ExamEditor() {
               type="datetime-local"
               name="end_time"
               value={exam.end_time ? (() => {
-                const d = new Date(exam.end_time);
+                // Convert UTC string to local datetime-local format
+                const utcStr = exam.end_time.replace(' ', 'T');
+                const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
                 const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
+                return new Date(d.getTime() + offset).toISOString().substring(0, 16);
               })() : ""}
               onChange={handleExamChange}
               required
