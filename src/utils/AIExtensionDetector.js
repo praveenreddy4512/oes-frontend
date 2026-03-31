@@ -243,8 +243,19 @@ class AIExtensionDetector {
   }
 
   monitorFocusChange() {
+    // 1. Detect when student switches tabs (Visibility API)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && this.isActive) {
+        this.logAIEvent('TAB_SWITCHED_AWAY');
+      }
+    });
+
+    // 2. Detect when student clicks out of the window (blur)
+    // Only logs if the tab is still visible (avoids double counting with visibilitychange)
     window.addEventListener('blur', () => {
-      if (!document.hidden) this.logAIEvent('UNAUTHORIZED_CONTEXT_SWITCH');
+      if (!document.hidden && this.isActive) {
+        this.logAIEvent('UNAUTHORIZED_CONTEXT_SWITCH');
+      }
     });
   }
 

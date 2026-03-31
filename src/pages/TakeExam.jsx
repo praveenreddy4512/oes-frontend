@@ -69,53 +69,8 @@ export default function TakeExam({ user }) {
       event_details: { message: 'Student started the exam' }
     });
 
-    // Track tab visibility changes (tab switching)
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        console.warn('⚠️ Student switched away from exam tab!');
-        tabSwitchCountRef.current++;
-        if (aiDetectorRef.current) {
-          aiDetectorRef.current.logAIEvent('TAB_SWITCHED_AWAY', { 
-            tabSwitchCount: tabSwitchCountRef.current 
-          });
-        }
-        logEvent({
-          event_type: 'tab_switched',
-          event_details: { 
-            action: 'switched_away',
-            tabSwitchCount: tabSwitchCountRef.current 
-          }
-        });
-      } else {
-        console.log('✅ Student returned to exam tab');
-        logEvent({
-          event_type: 'tab_switched',
-          event_details: { 
-            action: 'returned',
-            tabSwitchCount: tabSwitchCountRef.current 
-          }
-        });
-      }
-    };
-
-    // Track page refresh/unload
-    const handleBeforeUnload = (e) => {
-      pageRefreshCountRef.current++;
-      logEvent({
-        event_type: 'page_refreshed',
-        event_details: { 
-          pageRefreshCount: pageRefreshCountRef.current,
-          warning: 'Page was refreshed or will be refreshed'
-        }
-      });
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (aiDetectorRef.current) aiDetectorRef.current.stop();
     };
   }, [submission, submitted]);
 
