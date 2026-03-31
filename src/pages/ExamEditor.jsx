@@ -103,9 +103,15 @@ export default function ExamEditor() {
       // Convert IST (UTC+5:30) times to UTC for storage
       const convertISTToUTC = (istTimeStr) => {
         if (!istTimeStr) return null;
-        const d = new Date(istTimeStr);
-        // IST is UTC+5:30, so subtract 5.5 hours to get UTC
-        const utcTime = new Date(d.getTime() - (5.5 * 60 * 60 * 1000));
+        // Parse datetime-local string (e.g., "2026-03-31T14:10")
+        const [datePart, timePart] = istTimeStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+        
+        // Create a UTC date treating the input as IST values
+        const istDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+        // Subtract 5:30 to convert IST to UTC
+        const utcTime = new Date(istDate.getTime() - (5.5 * 60 * 60 * 1000));
         return utcTime.toISOString().slice(0, 19).replace('T', ' ');
       };
 
