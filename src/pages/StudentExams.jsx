@@ -78,7 +78,16 @@ export default function StudentExams({ user }) {
             <div className="exam-info">
               <span>📋 {exam.total_questions} questions</span>
               <span>⏱️ {exam.duration_minutes} mins</span>
-              <span>✅ Pass: {exam.passing_score}%</span>
+              {exam.start_time && (
+                <span style={{ fontWeight: '600', color: '#059669' }}>
+                  📅 Starts: {new Date(exam.start_time).toLocaleString()}
+                </span>
+              )}
+              {exam.end_time && (
+                <span style={{ fontWeight: '600', color: '#dc2626' }}>
+                  🕒 Ends: {new Date(exam.end_time).toLocaleString()}
+                </span>
+              )}
             </div>
             <a href={`/student/exam/${exam.id}`} className="btn-primary">
               Start Exam

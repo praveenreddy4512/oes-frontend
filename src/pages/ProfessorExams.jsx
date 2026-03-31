@@ -57,7 +57,7 @@ export default function ProfessorExams({ user }) {
             <th>Questions</th>
             <th>Duration</th>
             <th>Status</th>
-            <th>Date</th>
+            <th>Exam Window (Start - End)</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -70,7 +70,18 @@ export default function ProfessorExams({ user }) {
               <td>
                 <span className={`status-${exam.status}`}>{exam.status}</span>
               </td>
-              <td>{new Date(exam.created_at).toLocaleDateString()}</td>
+              <td style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                {exam.start_time ? (
+                  <div style={{ color: '#059669', fontWeight: '600' }}>
+                    🔓 {new Date(exam.start_time).toLocaleString()}
+                  </div>
+                ) : <div style={{ color: '#9ca3af' }}>No Start Time</div>}
+                {exam.end_time ? (
+                  <div style={{ color: '#dc2626', fontWeight: '600', marginTop: '4px' }}>
+                    🔒 {new Date(exam.end_time).toLocaleString()}
+                  </div>
+                ) : <div style={{ color: '#9ca3af' }}>No End Time</div>}
+              </td>
               <td>
                 <a href={`/professor/exam/${exam.id}/edit`} className="btn-link" title="Edit exam details and questions">
                   Edit
