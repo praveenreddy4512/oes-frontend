@@ -80,12 +80,20 @@ export default function StudentExams({ user }) {
               <span>⏱️ {exam.duration_minutes} mins</span>
               {exam.start_time && (
                 <span style={{ fontWeight: '600', color: '#059669' }}>
-                  📅 Starts: {exam.start_time.replace(' ', ', ')}
+                  📅 Starts: {(() => {
+                    // Remove ISO format artifacts and format nicely
+                    let time = exam.start_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
+                    return time;
+                  })()}
                 </span>
               )}
               {exam.end_time && (
                 <span style={{ fontWeight: '600', color: '#dc2626' }}>
-                  🕒 Ends: {exam.end_time.replace(' ', ', ')}
+                  🕒 Ends: {(() => {
+                    // Remove ISO format artifacts and format nicely
+                    let time = exam.end_time.replace(/\.\d{3}Z?$/, '').replace('Z', '').replace(' ', ', ');
+                    return time;
+                  })()}
                 </span>
               )}
             </div>
@@ -94,7 +102,11 @@ export default function StudentExams({ user }) {
                 const now = new Date();
                 const startTime = exam.start_time ? (() => {
                   try {
-                    const timeStr = exam.start_time.replace(' ', 'T');
+                    let timeStr = exam.start_time;
+                    // Remove ISO format artifacts (.000Z, Z)
+                    timeStr = timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '');
+                    // Replace space with T for datetime-local format
+                    timeStr = timeStr.replace(' ', 'T');
                     return new Date(timeStr);
                   } catch (e) {
                     return null;
@@ -102,7 +114,11 @@ export default function StudentExams({ user }) {
                 })() : null;
                 const endTime = exam.end_time ? (() => {
                   try {
-                    const timeStr = exam.end_time.replace(' ', 'T');
+                    let timeStr = exam.end_time;
+                    // Remove ISO format artifacts (.000Z, Z)
+                    timeStr = timeStr.replace(/\.\d{3}Z?$/, '').replace('Z', '');
+                    // Replace space with T for datetime-local format
+                    timeStr = timeStr.replace(' ', 'T');
                     return new Date(timeStr);
                   } catch (e) {
                     return null;
@@ -112,9 +128,12 @@ export default function StudentExams({ user }) {
                 const isPast = endTime && !isNaN(endTime) && now > endTime;
 
                 if (isEarly) {
+                  // Extract time directly from the string without timezone conversion
+                  const timeMatch = exam.start_time.match(/(\d{1,2}):(\d{2})/) || exam.start_time.match(/T(\d{1,2}):(\d{2})/);
+                  const displayTime = timeMatch ? `${parseInt(timeMatch[1], 10)}:${timeMatch[2]}` : '';
                   return (
                     <button className="btn-secondary" disabled style={{ width: '100%', opacity: 0.7 }}>
-                      ⏳ Available at {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      ⏳ Available at {displayTime}
                     </button>
                   );
                 }
