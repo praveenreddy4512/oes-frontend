@@ -39,134 +39,111 @@ class AIExtensionDetector {
     const style = document.createElement('style');
     style.id = 'ai-detector-styles';
     style.innerHTML = `
-      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
-      @keyframes ai-pulse {
-        0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0)); }
-        50% { transform: translate(-50%, -50%) scale(1.02); filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.4)); }
-        100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 0 0px rgba(239, 68, 68, 0)); }
+      @keyframes security-fade-in {
+        from { opacity: 0; filter: blur(10px); transform: scale(0.95); }
+        to { opacity: 1; filter: blur(0); transform: scale(1); }
       }
 
-      @keyframes ai-slide-up {
-        from { opacity: 0; transform: translate(-50%, -30%); }
-        to { opacity: 1; transform: translate(-50%, -50%); }
+      @keyframes strike-pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
       }
 
       .ai-security-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(12px) saturate(180%);
-        z-index: 1000000;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(16px);
+        z-index: 2000000;
         display: flex;
         justify-content: center;
         align-items: center;
-        transition: opacity 0.3s ease;
+        font-family: 'Outfit', sans-serif;
+        color: white;
       }
 
       .ai-security-card {
-        background: rgba(255, 255, 255, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: #0A0A0A;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         width: 90%;
-        max-width: 480px;
-        border-radius: 32px;
-        padding: 48px 40px;
+        max-width: 440px;
+        border-radius: 40px;
+        padding: 56px 40px;
         text-align: center;
-        box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.5);
-        font-family: 'Outfit', sans-serif;
-        position: relative;
-        animation: ai-slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: security-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 40px 100px -30px rgba(0,0,0,0.8);
       }
 
-      .ai-badge-suspicious {
-        display: inline-block;
-        background: linear-gradient(90deg, #F87171, #EF4444);
-        color: white;
-        padding: 6px 16px;
-        border-radius: 9999px;
-        font-weight: 800;
-        font-size: 11px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-      }
-
-      .ai-icon-pulse {
-        width: 96px;
-        height: 96px;
-        background: #FEE2E2;
-        border-radius: 30px;
+      .security-icon-box {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 28px;
         display: flex;
         justify-content: center;
         align-items: center;
+        font-size: 36px;
         margin: 0 auto 32px;
-        font-size: 48px;
-        color: #EF4444;
-        animation: ai-pulse 2s infinite ease-in-out;
       }
 
-      .ai-security-title {
-        color: #111827;
+      .security-title {
         font-size: 28px;
         font-weight: 800;
-        margin-bottom: 16px;
-        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+        letter-spacing: -0.01em;
       }
 
-      .ai-security-desc {
-        color: #4B5563;
+      .security-msg {
         font-size: 16px;
+        color: rgba(255, 255, 255, 0.6);
         line-height: 1.6;
-        margin-bottom: 36px;
+        margin-bottom: 40px;
       }
 
-      .ai-strike-bar {
+      .strike-tracker {
         display: flex;
         justify-content: center;
         gap: 12px;
-        margin-bottom: 8px;
+        margin-bottom: 16px;
       }
 
-      .ai-strike-segment {
-        flex: 1;
-        height: 10px;
-        border-radius: 5px;
-        background: #F3F4F6;
-        overflow: hidden;
-        position: relative;
+      .strike-dot {
+        width: 44px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        transition: all 0.3s ease;
       }
 
-      .ai-strike-segment.filled {
-        background: linear-gradient(90deg, #EF4444, #B91C1C);
+      .strike-dot.active {
+        background: #EF4444;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
       }
 
-      .ai-strike-label {
+      .strike-dot.pulse {
+        animation: strike-pulse 1.5s infinite;
+      }
+
+      .strike-text {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .security-footer {
+        margin-top: 48px;
         font-size: 13px;
-        font-weight: 600;
-        color: #9CA3AF;
-        margin-top: 12px;
+        color: rgba(255, 255, 255, 0.3);
       }
 
-      .ai-security-timer {
-        position: absolute;
-        bottom: -60px;
-        left: 0;
-        width: 100%;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      /* Disable all text interactions */
       body.exam-secure {
         user-select: none !important;
-        -webkit-user-select: none !important;
-        -moz-user-select: none !important;
-        -ms-user-select: none !important;
         cursor: default;
       }
     `;
@@ -273,10 +250,11 @@ class AIExtensionDetector {
 
     // SHOW POPUP FOR EVERY SINGLE EVENT
     if (this.strikeCount >= this.maxStrikes) {
-      this.showPremiumSecurityModal('Security Breach: Critical', 'The maximum limit for suspicious activity has been exceeded. The system is now initiating an automatic submission to protect exam integrity.', true);
+      this.showPremiumSecurityModal('Exam Terminated', 'Multiple safety rules were broken. Your answers are now being submitted automatically.', true);
       this.onLimitReached();
     } else {
-      this.showPremiumSecurityModal('Suspicious Activity: High', 'Unauthorized interaction detected. Your actions have been flagged and recorded by the system. Please remain focused on the exam interface.', false);
+      const remaining = this.maxStrikes - this.strikeCount;
+      this.showPremiumSecurityModal('Security Warning', `Unusual activity detected. Please stay focused. If you get ${remaining} more ${remaining === 1 ? 'warning' : 'warnings'}, your exam will end.`, false);
       this.onStrike(this.strikeCount, strikesLeft);
     }
 
@@ -296,53 +274,52 @@ class AIExtensionDetector {
   /**
    * High-end Modern Security Overlay
    */
-  showPremiumSecurityModal(title, message, isLast) {
+  showPremiumSecurityModal(title, message, isBlocked) {
     document.querySelectorAll('.ai-security-overlay').forEach(e => e.remove());
 
     const overlay = document.createElement('div');
     overlay.className = 'ai-security-overlay';
 
-    const card = document.createElement('div');
-    card.className = 'ai-security-card';
+    const icon = isBlocked ? '🔒' : '⚠️';
+    
+    overlay.innerHTML = `
+      <div class="ai-security-card">
+        <div class="security-icon-box" style="${isBlocked ? 'color: #EF4444; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);' : 'color: #FBBF24;'}">
+          ${icon}
+        </div>
+        <h2 class="security-title">${title}</h2>
+        <p class="security-msg">${message}</p>
+        
+        <div class="strike-tracker">
+          ${Array.from({ length: this.maxStrikes }).map((_, i) => `
+            <div class="strike-dot ${i < this.strikeCount ? 'active' : ''} ${i === this.strikeCount - 1 && !isBlocked ? 'pulse' : ''}"></div>
+          `).join('')}
+        </div>
+        <div class="strike-text">
+          ${isBlocked ? 'ACCESS REVOKED' : `STRIKE ${this.strikeCount} OF ${this.maxStrikes}`}
+        </div>
 
-    const icon = isLast ? '⛔' : '🛡️';
-    const statusText = isLast ? 'ACCOUNT FLAG: CRITICAL' : 'SUSPICIOUS ACTIVITY: HIGH';
-
-    card.innerHTML = `
-      <div class="ai-badge-suspicious" style="${isLast ? 'background: #000;' : ''}">${statusText}</div>
-      <div class="ai-icon-pulse" style="${isLast ? 'background: #111; color: #fff;' : ''}">
-        <span>${icon}</span>
+        <div class="security-footer">
+          Auto-closing in <span id="security-cd">5</span>s
+        </div>
       </div>
-      <h2 class="ai-security-title">${title}</h2>
-      <p class="ai-security-desc">${message}</p>
-      
-      <div class="ai-strike-bar">
-        ${Array.from({ length: this.maxStrikes }).map((_, i) => `
-          <div class="ai-strike-segment ${i < this.strikeCount ? 'filled' : ''}"></div>
-        `).join('')}
-      </div>
-      <div class="ai-strike-label">
-        ${isLast ? 'FINAL BREACH RECORDED' : `SECURITY STRIKE ${this.strikeCount} OF ${this.maxStrikes}`}
-      </div>
-
-      <div class="ai-security-timer">This window will dismiss in <span id="security-cd">5</span>s</div>
     `;
 
-    overlay.appendChild(card);
     document.body.appendChild(overlay);
 
-    // Countdown and auto-dismiss
     let timeLeft = 5;
     const interval = setInterval(() => {
       timeLeft--;
-      if (document.getElementById('security-cd')) {
-        document.getElementById('security-cd').textContent = timeLeft;
-      }
+      const cd = document.getElementById('security-cd');
+      if (cd) cd.textContent = timeLeft;
+      
       if (timeLeft <= 0) {
         clearInterval(interval);
-        if (!isLast) {
+        if (!isBlocked) {
           overlay.style.opacity = '0';
-          setTimeout(() => overlay.remove(), 300);
+          overlay.style.transition = 'opacity 0.5s ease, filter 0.5s ease';
+          overlay.style.filter = 'blur(10px)';
+          setTimeout(() => overlay.remove(), 500);
         }
       }
     }, 1000);
