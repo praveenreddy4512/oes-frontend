@@ -186,10 +186,22 @@ class AIExtensionDetector {
 
   detectCopilotShortcuts() {
     document.addEventListener('keydown', (e) => {
-      const isCopilot = (e.ctrlKey || e.metaKey) && ['i', '?'].includes(e.key.toLowerCase());
-      if (isCopilot) {
+      // Detected shortcuts:
+      // - Ctrl/Meta + I (Copilot/Inline AI)
+      // - Ctrl/Meta + Shift + . (Microsoft Edge Copilot Sidebar)
+      // - Alt + C (Microsoft Edge Copilot alternative)
+      // - Ctrl/Meta + ? (Help/AI Assistance)
+      // - Ctrl/Meta + Shift + G (Gemini/Google Sidebar)
+      
+      const isMicrosoftEdgeCopilot = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === '.' || e.code === 'Period');
+      const isAltCopilot = e.altKey && e.key.toLowerCase() === 'c';
+      const isStandardAI = (e.ctrlKey || e.metaKey) && ['i', '?', 'g'].includes(e.key.toLowerCase());
+
+      if (isMicrosoftEdgeCopilot || isAltCopilot || isStandardAI) {
         e.preventDefault();
-        this.logAIEvent('AI_INTEGRATION_SHORTCUT');
+        this.logAIEvent('AI_INTEGRATION_SHORTCUT', { 
+          shortcut: `${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.altKey ? 'Alt+' : ''}${e.key}` 
+        });
       }
     }, true);
   }
