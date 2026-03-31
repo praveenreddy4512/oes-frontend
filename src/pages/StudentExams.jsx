@@ -81,18 +81,26 @@ export default function StudentExams({ user }) {
               {exam.start_time && (
                 <span style={{ fontWeight: '600', color: '#059669' }}>
                   📅 Starts: {(() => {
-                    const utcStr = exam.start_time.replace(' ', 'T');
-                    const d = new Date(utcStr + 'Z');
-                    return d.toLocaleString();
+                    try {
+                      const utcStr = exam.start_time.replace(' ', 'T');
+                      const d = new Date(utcStr + 'Z');
+                      return isNaN(d) ? exam.start_time : d.toLocaleString();
+                    } catch (e) {
+                      return exam.start_time;
+                    }
                   })()}
                 </span>
               )}
               {exam.end_time && (
                 <span style={{ fontWeight: '600', color: '#dc2626' }}>
                   🕒 Ends: {(() => {
-                    const utcStr = exam.end_time.replace(' ', 'T');
-                    const d = new Date(utcStr + 'Z');
-                    return d.toLocaleString();
+                    try {
+                      const utcStr = exam.end_time.replace(' ', 'T');
+                      const d = new Date(utcStr + 'Z');
+                      return isNaN(d) ? exam.end_time : d.toLocaleString();
+                    } catch (e) {
+                      return exam.end_time;
+                    }
                   })()}
                 </span>
               )}
@@ -101,15 +109,23 @@ export default function StudentExams({ user }) {
               {(() => {
                 const now = new Date();
                 const startTime = exam.start_time ? (() => {
-                  const utcStr = exam.start_time.replace(' ', 'T');
-                  return new Date(utcStr + 'Z');
+                  try {
+                    const utcStr = exam.start_time.replace(' ', 'T');
+                    return new Date(utcStr + 'Z');
+                  } catch (e) {
+                    return null;
+                  }
                 })() : null;
                 const endTime = exam.end_time ? (() => {
-                  const utcStr = exam.end_time.replace(' ', 'T');
-                  return new Date(utcStr + 'Z');
+                  try {
+                    const utcStr = exam.end_time.replace(' ', 'T');
+                    return new Date(utcStr + 'Z');
+                  } catch (e) {
+                    return null;
+                  }
                 })() : null;
-                const isEarly = startTime && now < startTime;
-                const isPast = endTime && now > endTime;
+                const isEarly = startTime && !isNaN(startTime) && now < startTime;
+                const isPast = endTime && !isNaN(endTime) && now > endTime;
 
                 if (isEarly) {
                   return (

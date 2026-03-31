@@ -135,11 +135,7 @@ export default function CreateExam({ user }) {
             <input
               type="datetime-local"
               name="start_time"
-              value={formData.start_time ? (() => {
-                const d = new Date(formData.start_time);
-                const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
-              })() : ""}
+              value={formData.start_time || ""}
               onChange={handleChange}
               required
             />
@@ -151,11 +147,7 @@ export default function CreateExam({ user }) {
             <input
               type="datetime-local"
               name="end_time"
-              value={formData.end_time ? (() => {
-                const d = new Date(formData.end_time);
-                const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
-              })() : ""}
+              value={formData.end_time || ""}
               onChange={handleChange}
               required
             />

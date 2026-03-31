@@ -262,11 +262,16 @@ export default function ExamEditor() {
               type="datetime-local"
               name="start_time"
               value={exam.start_time ? (() => {
-                // Convert UTC string to local datetime-local format
-                const utcStr = exam.start_time.replace(' ', 'T');
-                const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
-                const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() + offset).toISOString().substring(0, 16);
+                try {
+                  // Convert UTC string to local datetime-local format
+                  const utcStr = exam.start_time.replace(' ', 'T');
+                  const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
+                  if (isNaN(d)) return "";
+                  const offset = d.getTimezoneOffset() * 60000;
+                  return new Date(d.getTime() + offset).toISOString().substring(0, 16);
+                } catch (e) {
+                  return "";
+                }
               })() : ""}
               onChange={handleExamChange}
               required
@@ -280,11 +285,16 @@ export default function ExamEditor() {
               type="datetime-local"
               name="end_time"
               value={exam.end_time ? (() => {
-                // Convert UTC string to local datetime-local format
-                const utcStr = exam.end_time.replace(' ', 'T');
-                const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
-                const offset = d.getTimezoneOffset() * 60000;
-                return new Date(d.getTime() + offset).toISOString().substring(0, 16);
+                try {
+                  // Convert UTC string to local datetime-local format
+                  const utcStr = exam.end_time.replace(' ', 'T');
+                  const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
+                  if (isNaN(d)) return "";
+                  const offset = d.getTimezoneOffset() * 60000;
+                  return new Date(d.getTime() + offset).toISOString().substring(0, 16);
+                } catch (e) {
+                  return "";
+                }
               })() : ""}
               onChange={handleExamChange}
               required
