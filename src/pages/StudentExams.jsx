@@ -89,9 +89,37 @@ export default function StudentExams({ user }) {
                 </span>
               )}
             </div>
-            <a href={`/student/exam/${exam.id}`} className="btn-primary">
-              Start Exam
-            </a>
+            <div className="exam-card-footer" style={{ marginTop: 'auto', paddingTop: '15px' }}>
+              {(() => {
+                const now = new Date();
+                const startTime = exam.start_time ? new Date(exam.start_time) : null;
+                const endTime = exam.end_time ? new Date(exam.end_time) : null;
+                const isEarly = startTime && now < startTime;
+                const isPast = endTime && now > endTime;
+
+                if (isEarly) {
+                  return (
+                    <button className="btn-secondary" disabled style={{ width: '100%', opacity: 0.7 }}>
+                      ⏳ Available at {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </button>
+                  );
+                }
+                
+                if (isPast) {
+                  return (
+                    <button className="btn-secondary" disabled style={{ width: '100%', background: '#f3f4f6', color: '#9ca3af' }}>
+                      🛑 Exam Closed
+                    </button>
+                  );
+                }
+
+                return (
+                  <a href={`/student/exam/${exam.id}`} className="btn-primary" style={{ display: 'block', textAlign: 'center' }}>
+                    Start Exam
+                  </a>
+                );
+              })()}
+            </div>
           </div>
         ))}
       </div>
