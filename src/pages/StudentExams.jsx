@@ -80,28 +80,12 @@ export default function StudentExams({ user }) {
               <span>⏱️ {exam.duration_minutes} mins</span>
               {exam.start_time && (
                 <span style={{ fontWeight: '600', color: '#059669' }}>
-                  📅 Starts: {(() => {
-                    try {
-                      const timeStr = exam.start_time.replace(' ', 'T');
-                      const d = new Date(timeStr);
-                      return isNaN(d) ? exam.start_time : d.toLocaleString();
-                    } catch (e) {
-                      return exam.start_time;
-                    }
-                  })()}
+                  📅 Starts: {exam.start_time.replace(' ', ', ')}
                 </span>
               )}
               {exam.end_time && (
                 <span style={{ fontWeight: '600', color: '#dc2626' }}>
-                  🕒 Ends: {(() => {
-                    try {
-                      const timeStr = exam.end_time.replace(' ', 'T');
-                      const d = new Date(timeStr);
-                      return isNaN(d) ? exam.end_time : d.toLocaleString();
-                    } catch (e) {
-                      return exam.end_time;
-                    }
-                  })()}
+                  🕒 Ends: {exam.end_time.replace(' ', ', ')}
                 </span>
               )}
             </div>
