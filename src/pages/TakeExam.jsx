@@ -361,6 +361,19 @@ export default function TakeExam({ user }) {
   const totalQuestions = shuffledQuestions.length;
   const questionProgress = `${currentQuestionIndex + 1} / ${totalQuestions}`;
 
+  // Handle navigation
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
   return (
     <div className="page-container">
       {/* 🚀 NEW: Security Modal for Multi-Login detection during exam */}
