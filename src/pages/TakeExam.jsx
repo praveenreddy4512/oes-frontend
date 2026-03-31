@@ -316,7 +316,7 @@ export default function TakeExam({ user }) {
   };
 
   if (loading) return <div className="page-container"><p>Loading exam...</p></div>;
-  if (error) {
+  if (error && !submission) {
     const isIpError = error.toLowerCase().includes('ip') || error.toLowerCase().includes('authorized');
     return (
       <div className="page-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
@@ -344,6 +344,7 @@ export default function TakeExam({ user }) {
       </div>
     );
   }
+
   if (submitted)
     return (
       <div className="page-container">
@@ -360,23 +361,66 @@ export default function TakeExam({ user }) {
   const totalQuestions = shuffledQuestions.length;
   const questionProgress = `${currentQuestionIndex + 1} / ${totalQuestions}`;
 
-  // Handle navigation
-  const goToPreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
-  const goToNextQuestion = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
   return (
     <div className="page-container">
+      {/* 🚀 NEW: Security Modal for Multi-Login detection during exam */}
+      {error && submission && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div className="animate-pop-in" style={{
+            background: '#ffffff',
+            padding: '50px 40px',
+            borderRadius: '30px',
+            maxWidth: '450px',
+            textAlign: 'center',
+            boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+            borderTop: '8px solid #f87171'
+          }}>
+            <div style={{ fontSize: '70px', marginBottom: '20px' }}>🔐</div>
+            <h2 style={{ color: '#1f2937', fontSize: '24px', fontWeight: '800', marginBottom: '15px' }}>
+              Session Terminated
+            </h2>
+            <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '30px' }}>
+              {error}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="btn-primary"
+              style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: 'bold' }}
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="exam-header">
-        <h1>{exam?.title}</h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1>{exam?.title}</h1>
+          {submission?.isResumed && (
+            <span style={{ 
+              color: '#059669', 
+              background: '#ecfdf5', 
+              padding: '4px 12px', 
+              borderRadius: '20px', 
+              fontSize: '13px', 
+              fontWeight: '600',
+              display: 'inline-block',
+              marginTop: '5px',
+              border: '1px solid #10b981'
+            }}>
+              🔄 Session Resumed from another device
+            </span>
+          )}
+        </div>
         <div className="exam-timer">
           <span className={timeLeft < 300 ? "timer-warning" : ""}>
             ⏱️ Time Left: {formatTime(timeLeft)}
@@ -418,6 +462,7 @@ export default function TakeExam({ user }) {
                         value={displayLabel}
                         checked={isAnswered}
                         onChange={(e) => handleAnswer(currentQuestionData.id, e.target.value)}
+                        disabled={!!error} // Disable interaction if session invalidated
                       />
                       <span className="option-text">
                         {displayLabel.toUpperCase()}: {optionText}
@@ -434,7 +479,7 @@ export default function TakeExam({ user }) {
       <div className="exam-navigation">
         <button
           onClick={goToPreviousQuestion}
-          disabled={currentQuestionIndex === 0}
+          disabled={currentQuestionIndex === 0 || !!error}
           className="btn-secondary"
         >
           ← Previous
@@ -445,13 +490,13 @@ export default function TakeExam({ user }) {
         </div>
 
         {currentQuestionIndex === totalQuestions - 1 ? (
-          <button onClick={handleSubmit} className="btn-primary btn-submit">
+          <button onClick={handleSubmit} disabled={!!error} className="btn-primary btn-submit">
             Submit Exam
           </button>
         ) : (
           <button
             onClick={goToNextQuestion}
-            disabled={currentQuestionIndex === totalQuestions - 1}
+            disabled={currentQuestionIndex === totalQuestions - 1 || !!error}
             className="btn-secondary"
           >
             Next →
