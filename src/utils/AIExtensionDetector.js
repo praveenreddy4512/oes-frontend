@@ -12,12 +12,12 @@ class AIExtensionDetector {
     this.maxStrikes = options.maxStrikes || 3;
     this.onStrike = options.onStrike || (() => { });
     this.onLimitReached = options.onLimitReached || (() => { });
+    this.isActive = false;
+    this.devtoolsInterval = null;
   }
 
-  /**
-   * Initialize AI extension detection
-   */
   init() {
+    this.isActive = true;
     this.detectCopilotShortcuts();
     this.detectClipboardAccess();
     this.detectExtensionRequests();
@@ -28,6 +28,16 @@ class AIExtensionDetector {
     this.injectStyles();
     this.disableBrowserShortcuts();
     console.log('🛡️ AI Security System Active');
+  }
+
+  /**
+   * Stop all detection (called on submit)
+   */
+  stop() {
+    this.isActive = false;
+    if (this.devtoolsInterval) clearInterval(this.devtoolsInterval);
+    document.body.classList.remove('exam-secure');
+    console.log('🏁 AI Security System Deactivated');
   }
 
   /**
@@ -204,7 +214,8 @@ class AIExtensionDetector {
   }
 
   detectBrowserDevTools() {
-    setInterval(() => {
+    this.devtoolsInterval = setInterval(() => {
+      if (!this.isActive) return;
       const start = performance.now();
       debugger;
       if (performance.now() - start > 100) this.logAIEvent('DEV_TOOLS_OVERLAY');
@@ -241,6 +252,8 @@ class AIExtensionDetector {
    * Log strike and show the state-of-the-art UI
    */
   logAIEvent(eventType, data) {
+    if (!this.isActive) return;
+    
     this.strikeCount++;
     const strikesLeft = Math.max(0, this.maxStrikes - this.strikeCount);
 
