@@ -252,7 +252,20 @@ export default function TakeExam({ user }) {
       return;
     }
     
-    if (!confirm("Are you sure you want to submit?")) return;
+    // ✅ PAUSE AI DETECTOR during confirmation dialog to avoid false tab switches
+    const wasActive = aiDetectorRef.current?.isActive;
+    if (aiDetectorRef.current) {
+      aiDetectorRef.current.isActive = false;
+    }
+    
+    const confirmed = confirm("Are you sure you want to submit?");
+    
+    // ✅ RESUME AI DETECTOR after dialog closes
+    if (aiDetectorRef.current) {
+      aiDetectorRef.current.isActive = wasActive;
+    }
+    
+    if (!confirmed) return;
     
     await executeFinalSubmission();
   };
