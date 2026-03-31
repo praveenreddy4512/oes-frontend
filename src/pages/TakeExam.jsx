@@ -87,6 +87,19 @@ export default function TakeExam({ user }) {
     }
   }, [currentQuestion, submission]);
 
+  // Centralized authentication error handler
+  const handleAuthError = async (response) => {
+    if (response.status === 401) {
+      const data = await response.json().catch(() => ({}));
+      if (data.error === "Session Invalidated" || data.message?.includes("device")) {
+        setError(data.message || "Session invalidated due to login on another device.");
+        if (aiDetectorRef.current) aiDetectorRef.current.stop();
+        return true;
+      }
+    }
+    return false;
+  };
+
   // ✅ NEW: Log event to backend (only during exam, not before or after)
   const logEvent = async (eventData) => {
     // Don't log events before submission or after submission is complete
@@ -105,7 +118,10 @@ export default function TakeExam({ user }) {
       );
 
       if (!res.ok) {
-        console.error('[❌ EVENT LOGGING FAILED]', await res.json());
+        const isAuthError = await handleAuthError(res);
+        if (!isAuthError) {
+          console.error('[❌ EVENT LOGGING FAILED]', await res.json().catch(() => ({})));
+        }
       } else {
         console.log('[✅ EVENT LOGGED]', eventData.event_type);
       }
@@ -260,8 +276,12 @@ export default function TakeExam({ user }) {
       );
       
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to finalize submission");
+        const isAuthError = await handleAuthError(res);
+        if (!isAuthError) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error.error || "Failed to finalize submission");
+        }
+        return; // handleAuthError already sets the error state
       }
       
       const result = await res.json();
