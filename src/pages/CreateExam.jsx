@@ -61,25 +61,11 @@ export default function CreateExam({ user }) {
     setSuccess("");
 
     try {
-      // Convert IST (UTC+5:30) times to UTC for storage
-      const convertISTToUTC = (istTimeStr) => {
-        if (!istTimeStr) return null;
-        // Parse datetime-local string (e.g., "2026-03-31T14:10")
-        const [datePart, timePart] = istTimeStr.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute] = timePart.split(':').map(Number);
-        
-        // Create a UTC date treating the input as IST values
-        const istDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
-        // Subtract 5:30 to convert IST to UTC
-        const utcTime = new Date(istDate.getTime() - (5.5 * 60 * 60 * 1000));
-        return utcTime.toISOString().slice(0, 19).replace('T', ' ');
-      };
-
+      // Simply use the selected time as-is, no conversion
       const payload = { 
         ...formData,
-        start_time: convertISTToUTC(formData.start_time),
-        end_time: convertISTToUTC(formData.end_time),
+        start_time: formData.start_time ? formData.start_time.replace('T', ' ') : null,
+        end_time: formData.end_time ? formData.end_time.replace('T', ' ') : null,
         professor_id: user.id,
         groupIds: selectedGroups
       };

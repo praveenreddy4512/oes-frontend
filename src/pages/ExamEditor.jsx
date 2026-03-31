@@ -100,21 +100,7 @@ export default function ExamEditor() {
     setError("");
     setSuccess("");
     try {
-      // Convert IST (UTC+5:30) times to UTC for storage
-      const convertISTToUTC = (istTimeStr) => {
-        if (!istTimeStr) return null;
-        // Parse datetime-local string (e.g., "2026-03-31T14:10")
-        const [datePart, timePart] = istTimeStr.split('T');
-        const [year, month, day] = datePart.split('-').map(Number);
-        const [hour, minute] = timePart.split(':').map(Number);
-        
-        // Create a UTC date treating the input as IST values
-        const istDate = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
-        // Subtract 5:30 to convert IST to UTC
-        const utcTime = new Date(istDate.getTime() - (5.5 * 60 * 60 * 1000));
-        return utcTime.toISOString().slice(0, 19).replace('T', ' ');
-      };
-
+      // Simply use the selected time as-is, no conversion
       const res = await apiPut(`/api/exams/${id}`, {
         title: exam.title,
         description: exam.description,
@@ -123,8 +109,8 @@ export default function ExamEditor() {
         shuffle_options: exam.shuffle_options,
         is_ip_restricted: exam.is_ip_restricted,
         restricted_ip: exam.restricted_ip,
-        start_time: convertISTToUTC(exam.start_time),
-        end_time: convertISTToUTC(exam.end_time),
+        start_time: exam.start_time ? exam.start_time.replace('T', ' ') : null,
+        end_time: exam.end_time ? exam.end_time.replace('T', ' ') : null,
       });
       if (!res.ok) {
         const error = await res.json();
@@ -269,19 +255,7 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="start_time"
-              value={exam.start_time ? (() => {
-                try {
-                  // Convert UTC string to IST datetime-local format
-                  const utcStr = exam.start_time.replace(' ', 'T');
-                  const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
-                  if (isNaN(d)) return "";
-                  // Convert UTC to IST (UTC+5:30)
-                  const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-                  return istTime.toISOString().substring(0, 16);
-                } catch (e) {
-                  return "";
-                }
-              })() : ""}
+              value={exam.start_time ? exam.start_time.replace(' ', 'T') : ""}
               onChange={handleExamChange}
               required
             />
@@ -293,19 +267,7 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="end_time"
-              value={exam.end_time ? (() => {
-                try {
-                  // Convert UTC string to IST datetime-local format
-                  const utcStr = exam.end_time.replace(' ', 'T');
-                  const d = new Date(utcStr + 'Z'); // Add Z to indicate UTC
-                  if (isNaN(d)) return "";
-                  // Convert UTC to IST (UTC+5:30)
-                  const istTime = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-                  return istTime.toISOString().substring(0, 16);
-                } catch (e) {
-                  return "";
-                }
-              })() : ""}
+              value={exam.end_time ? exam.end_time.replace(' ', 'T') : ""}
               onChange={handleExamChange}
               required
             />
