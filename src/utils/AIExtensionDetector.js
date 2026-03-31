@@ -245,7 +245,13 @@ class AIExtensionDetector {
     const strikesLeft = Math.max(0, this.maxStrikes - this.strikeCount);
 
     // Log event data
-    const event = { type: eventType, data, strikeCount: this.strikeCount, timestamp: new Date().toISOString() };
+    const event = { 
+      type: eventType, 
+      data, 
+      strikeCount: this.strikeCount, 
+      timestamp: new Date().toISOString(),
+      localTime: new Date().toLocaleTimeString() // Capture student's local time
+    };
     this.aiExtensionEvents.push(event);
 
     console.error(`[🚨 SECURITY BREACH] Level: HIGH | Count: ${this.strikeCount}/${this.maxStrikes}`);
