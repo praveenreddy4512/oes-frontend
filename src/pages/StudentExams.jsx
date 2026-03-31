@@ -28,14 +28,22 @@ export default function StudentExams({ user }) {
       // Fetch exams assigned to student's groups
       const examsRes = await apiGet('/api/exams/student/exams/by-group');
       const examsData = await examsRes.json();
-      setExams(examsData.filter((e) => e.status === "published"));
+      
+      if (Array.isArray(examsData)) {
+        setExams(examsData.filter((e) => e.status === "published"));
+      } else {
+        console.error("Failed to fetch group exams:", examsData);
+        throw new Error(examsData.error || "Invalid exam data received");
+      }
     } catch (err) {
       setError(err.message);
       // Fallback to fetching all published exams if group filtering fails
       try {
         const res = await apiGet('/api/exams');
         const data = await res.json();
-        setExams(data.filter((e) => e.status === "published"));
+        if (Array.isArray(data)) {
+          setExams(data.filter((e) => e.status === "published"));
+        }
       } catch (fallbackErr) {
         console.error("Fallback fetch also failed:", fallbackErr);
       }
