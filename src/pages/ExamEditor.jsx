@@ -252,7 +252,11 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="start_time"
-              value={exam.start_time ? exam.start_time.replace(' ', 'T').substring(0, 16) : ""}
+              value={exam.start_time ? (() => {
+                const d = new Date(exam.start_time);
+                const offset = d.getTimezoneOffset() * 60000;
+                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
+              })() : ""}
               onChange={handleExamChange}
               required
             />
@@ -264,7 +268,11 @@ export default function ExamEditor() {
             <input
               type="datetime-local"
               name="end_time"
-              value={exam.end_time ? exam.end_time.replace(' ', 'T').substring(0, 16) : ""}
+              value={exam.end_time ? (() => {
+                const d = new Date(exam.end_time);
+                const offset = d.getTimezoneOffset() * 60000;
+                return new Date(d.getTime() - offset).toISOString().substring(0, 16);
+              })() : ""}
               onChange={handleExamChange}
               required
             />
