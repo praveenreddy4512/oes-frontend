@@ -9,17 +9,23 @@
   margin-bottom: 4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   position: relative;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.02);
 }
 
-.dashboard-header::after {
+.dashboard-header::before {
   content: '';
   position: absolute;
-  bottom: -1rem;
   left: 0;
-  width: 60px;
-  height: 4px;
+  top: 10%;
+  width: 6px;
+  height: 80%;
   background: var(--primary);
   border-radius: var(--radius-full);
 }
@@ -30,7 +36,14 @@
   font-weight: 900;
   color: var(--text-main);
   letter-spacing: -0.06em;
-  background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-header h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -39,8 +52,26 @@
 .dashboard-header p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.user-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 900;
+  box-shadow: 0 10px 20px rgba(175, 12, 62, 0.2);
+  border: 4px solid white;
 }
 
 .dashboard-grid {

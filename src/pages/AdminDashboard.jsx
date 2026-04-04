@@ -5,7 +5,12 @@ export default function AdminDashboard({ user }) {
   return (
     <div className="dashboard-container">
       <div className="dashboard-header animate-fade-in">
-        <h1>Admin Panel - {user.username} 👨‍💼</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '0.5rem' }}>
+          <div className="user-avatar-placeholder">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <h1>Admin: <span>{user.username}</span> 👨‍💼</h1>
+        </div>
         <p>System Administration & Oversight</p>
       </div>
 
