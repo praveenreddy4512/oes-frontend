@@ -53,14 +53,14 @@ export default function TakeExam({ user }) {
     // Initialize AI Extension Detector
     if (!aiDetectorRef.current && user?.id && examId) {
       aiDetectorRef.current = new AIExtensionDetector(user.id, examId, {
-        maxStrikes: 3,
+        maxStrikes: 5,
         onLimitReached: () => {
           console.error('⛔ MAX STRIKES REACHED - AUTO SUBMITTING EXAM');
           handleAutoSubmit();
         }
       });
       aiDetectorRef.current.init();
-      console.log('✅ AI Extension Detector initialized with 3 strikes');
+      console.log('✅ AI Extension Detector initialized with 5 strikes');
     }
 
     // Log exam started event
@@ -238,7 +238,7 @@ export default function TakeExam({ user }) {
       event_details: { 
         reason: 'Max strikes reached in AI Extension Detector',
         tabSwitches: tabSwitchCountRef.current,
-        totalStrikes: aiDetectorRef.current?.strikeCount || 3
+        totalStrikes: aiDetectorRef.current?.strikeCount || 5
       }
     });
 
@@ -314,7 +314,7 @@ export default function TakeExam({ user }) {
       });
       
       setSubmitted(true);
-      if (!aiDetectorRef.current?.strikeCount >= 3) {
+      if (!aiDetectorRef.current?.strikeCount >= 5) {
         alert(`Exam submitted! Score: ${result.correct_answers}/${result.total_questions}`);
       }
     } catch (err) {

@@ -9,7 +9,7 @@ class AIExtensionDetector {
     this.examId = examId;
     this.aiExtensionEvents = [];
     this.strikeCount = 0;
-    this.maxStrikes = options.maxStrikes || 3;
+    this.maxStrikes = options.maxStrikes || 5;
     this.onStrike = options.onStrike || (() => { });
     this.onLimitReached = options.onLimitReached || (() => { });
     this.isActive = false;
