@@ -23,8 +23,8 @@ export default function StudentDashboard({ user }) {
 
         <div className="dashboard-card">
           <h3>👤 Profile</h3>
-          <p>Update your profile information</p>
-          <a href="/student/profile" className="btn-primary">Edit Profile</a>
+          <p>View your profile information</p>
+          <a href="/student/profile" className="btn-primary" style={{ opacity: '0.6', cursor: 'not-allowed', pointerEvents: 'none' }}>Profile (Read-Only)</a>
         </div>
 
         <div className="dashboard-card">
