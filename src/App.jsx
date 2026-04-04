@@ -49,7 +49,12 @@ export default function App() {
   };
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="loading">
+        <div className="loader"></div>
+        <div className="loading-text">Online Examination System</div>
+      </div>
+    );
   }
 
   return (

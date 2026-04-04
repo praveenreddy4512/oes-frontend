@@ -95,13 +95,38 @@ main {
 
 .loading {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--primary);
   background: var(--bg-main);
+  gap: 1.5rem;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid var(--primary-soft);
+  border-bottom-color: var(--primary);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 #root {
@@ -159,6 +184,31 @@ main {
 
 .premium-card:hover {
   box-shadow: var(--shadow-premium);
-  transform: translateY(-4px);
+  transform: translateY(-8px) scale(1.01);
   border-color: var(--primary-soft);
+}
+
+/* Shimmer Effect for Buttons */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
 }

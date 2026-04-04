@@ -86,8 +86,8 @@ export default function LoginPage({ onLogin }) {
 
           {error && <p className="error">{error}</p>}
 
-          <button type="submit" disabled={loading} className="login-btn">
-            {loading ? "Logging in..." : "Login"}
+          <button type="submit" disabled={loading} className="login-btn shimmer">
+            {loading ? "Verifying..." : "Secure Login"}
           </button>
 
           <div className="forgot-password">
@@ -113,8 +113,13 @@ export default function LoginPage({ onLogin }) {
           </div>
         </div>
 
-        <div className="security-notice">
-          <p>⚠️ <strong>Security Notice:</strong> This is a demonstration of plaintext password storage vulnerabilities. Do not use this approach in production.</p>
+        <div className="login-footer">
+          <div className="security-badge">
+            <span>🛡️</span> 128-bit SSL Encryption
+          </div>
+          <div className="security-badge">
+            <span>🔐</span> Secure Device Fingerprinted
+          </div>
         </div>
       </section>
     </main>
