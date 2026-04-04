@@ -1,8 +1,8 @@
 .dashboard-container {
   padding: 4rem 2rem;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
-  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .dashboard-header {
@@ -26,10 +26,14 @@
 
 .dashboard-header h1 {
   margin: 0;
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 900;
   color: var(--text-main);
-  letter-spacing: -0.05em;
+  letter-spacing: -0.06em;
+  background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dashboard-header p {
@@ -49,9 +53,9 @@
   background: var(--surface);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border);
-  transition: var(--transition);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: var(--transition-slow);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -67,13 +71,13 @@
   width: 100%;
   height: 4px;
   background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  opacity: 0.1;
+  opacity: 0;
   transition: var(--transition);
 }
 
 .dashboard-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-premium);
   border-color: var(--primary-soft);
 }
 
