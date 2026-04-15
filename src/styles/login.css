@@ -146,15 +146,12 @@
   cursor: pointer;
   transition: var(--transition);
   margin-top: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(175, 12, 62, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .login-btn:hover:not(:disabled) {
   background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 15px 30px -5px rgba(175, 12, 62, 0.5);
 }
 
 .login-btn:active:not(:disabled) {

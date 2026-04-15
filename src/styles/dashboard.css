@@ -154,7 +154,7 @@
   background: var(--bg-main);
   color: var(--text-main);
   padding: 0.85rem 1.75rem;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius-md);
   text-decoration: none;
   cursor: pointer;
