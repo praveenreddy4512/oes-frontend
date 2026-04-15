@@ -4,19 +4,33 @@
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
   color: var(--text-main);
-  padding: 0 5%;
+  padding: 0 3%;
   height: 80px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 2rem;
   border-bottom: 1px solid rgba(226, 232, 240, 0.5);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: fit-content;
+}
+
+.navbar-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
 .navbar-brand-text {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 800;
   font-family: var(--font-heading);
   color: var(--primary);
@@ -31,6 +45,8 @@
   padding: 0.35rem;
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
+  flex: 1;
+  justify-content: center;
 }
 
 .navbar-link {
