@@ -1,13 +1,15 @@
 .navbar {
-  background-color: white;
-  box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
   color: var(--text-main);
-  padding: 0 3%;
-  height: 72px;
+  padding: 0 5%;
+  height: 80px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -35,26 +37,28 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.5rem 1.25rem;
+  padding: 0.6rem 1.4rem;
   border-radius: var(--radius-full);
   transition: var(--transition);
   text-decoration: none;
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .navbar-link:hover {
   color: var(--primary);
-  background-color: white;
+  background-color: var(--primary-soft);
+  transform: translateY(-1px);
 }
 
 .navbar-link.active {
   background-color: var(--primary);
   color: white;
-  box-shadow: 0 4px 12px -4px rgba(175, 12, 62, 0.3);
+  box-shadow: 0 8px 20px -6px rgba(175, 12, 62, 0.4);
   font-weight: 700;
 }
 
