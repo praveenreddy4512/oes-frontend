@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiPost, setToken } from "../utils/api.js";
 import { getDeviceFingerprint } from "../utils/fingerprint.js";
@@ -10,6 +10,23 @@ export default function LoginPage({ onLogin }) {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [invalidationWarning, setInvalidationWarning] = useState("");
+
+  // Check if session was invalidated due to multi-login
+  useEffect(() => {
+    const invalidationData = localStorage.getItem('sessionInvalidatedReason');
+    if (invalidationData) {
+      try {
+        const { message, reason } = JSON.parse(invalidationData);
+        if (reason === 'multi_login') {
+          setInvalidationWarning(message || 'Your session was logged out because you signed in from another device.');
+          localStorage.removeItem('sessionInvalidatedReason'); // Clear after showing
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+    }
+  }, []);
 
   const onInputChange = (event) => {
     const { name, value } = event.target;
@@ -83,6 +100,8 @@ export default function LoginPage({ onLogin }) {
               required
             />
           </div>
+
+          {invalidationWarning && <p className="warning" style={{ color: '#ff9800', backgroundColor: '#fff3e0', padding: '10px', borderRadius: '4px', marginBottom: '15px' }}>⚠️ {invalidationWarning}</p>}
 
           {error && <p className="error">{error}</p>}
 

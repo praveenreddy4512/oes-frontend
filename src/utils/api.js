@@ -63,11 +63,28 @@ export async function apiCall(endpoint, options = {}) {
 
   const response = await fetch(url, fetchOptions);
   
-  // If 401 Unauthorized, clear token and redirect to login
+  // If 401 Unauthorized, clear token and handle differently based on error type
   if (response.status === 401) {
     clearToken();
-    // Optional: Redirect to login page
-    // window.location.href = '/login';
+    
+    // Parse error to identify reason
+    try {
+      const errorData = await response.clone().json();
+      if (errorData.error === 'Session Invalidated') {
+        // Session was invalidated due to multi-login
+        console.warn('[🚫 SESSION_INVALIDATED]', errorData.message);
+        localStorage.setItem('sessionInvalidatedReason', JSON.stringify({
+          reason: 'multi_login',
+          message: errorData.message,
+          invalidatedAt: errorData.invalidatedAt
+        }));
+      }
+    } catch (e) {
+      // Error parsing response, continue
+    }
+    
+    // Redirect to login page after clearing token
+    window.location.href = '/login';
   }
   
   return response;
