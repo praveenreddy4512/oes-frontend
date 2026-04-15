@@ -1,0 +1,534 @@
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import "../styles/pages.css";
+import { apiCall, apiGet, apiPost, apiUrl } from "../utils/api";
+import AIExtensionDetector from "../utils/AIExtensionDetector";
+
+// Utility function to shuffle array
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+export default function TakeExam({ user }) {
+  const { examId } = useParams();
+  const [exam, setExam] = useState(null);
+  const [submission, setSubmission] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [optionMapping, setOptionMapping] = useState({}); // Maps display option to actual option
+  
+  // ✅ NEW: Event tracking states
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const questionStartTimeRef = useRef(null);
+  const tabSwitchCountRef = useRef(0);
+  const pageRefreshCountRef = useRef(0);
+  const aiDetectorRef = useRef(null);
+
+  useEffect(() => {
+    fetchExam();
+  }, [examId]);
+
+  useEffect(() => {
+    if (!timeLeft) return;
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  // ✅ NEW: Track tab switching and page refresh events
+  // IMPORTANT: Only track DURING exam (after submission starts, before submit button clicked)
+  useEffect(() => {
+    // Stop tracking after exam is submitted
+    if (!submission || submitted) return;
+
+    // Initialize AI Extension Detector
+    if (!aiDetectorRef.current && user?.id && examId) {
+      aiDetectorRef.current = new AIExtensionDetector(user.id, examId, {
+        maxStrikes: 5,
+        onLimitReached: () => {
+          console.error('⛔ MAX STRIKES REACHED - AUTO SUBMITTING EXAM');
+          handleAutoSubmit();
+        }
+      });
+      aiDetectorRef.current.init();
+      console.log('✅ AI Extension Detector initialized with 5 strikes');
+    }
+
+    // Log exam started event
+    logEvent({
+      event_type: 'exam_started',
+      event_details: { message: 'Student started the exam' }
+    });
+
+    return () => {
+      if (aiDetectorRef.current) aiDetectorRef.current.stop();
+    };
+  }, [submission, submitted]);
+
+  // ✅ NEW: Log question viewing and track time per question
+  useEffect(() => {
+    const currentQ = shuffledQuestions[currentQuestionIndex];
+    if (currentQ?.id && submission) {
+      questionStartTimeRef.current = Date.now();
+      
+      logEvent({
+        event_type: 'question_viewed',
+        question_id: currentQ.id,
+        event_details: { questionId: currentQ.id, index: currentQuestionIndex }
+      });
+    }
+  }, [currentQuestionIndex, submission, shuffledQuestions.length]);
+
+  // Centralized authentication error handler
+  const handleAuthError = async (response) => {
+    if (response.status === 401) {
+      // ✅ SECURITY: Any 401 means fingerprint mismatch or session expiration
+      const data = await response.json().catch(() => ({}));
+      setError(data.message || data.error || "Session invalidated due to login on another device.");
+      if (aiDetectorRef.current) aiDetectorRef.current.stop();
+      return true;
+    }
+    return false;
+  };
+
+  // ✅ NEW: Log event to backend (only during exam, not before or after)
+  const logEvent = async (eventData) => {
+    // Don't log events before submission or after submission is complete
+    if (!submission || (submitted && eventData.event_type !== 'exam_submitted')) return;
+
+    try {
+      const payload = {
+        ...eventData,
+        student_id: user.id,
+        exam_id: examId
+      };
+
+      const res = await apiPost(
+        `/api/submissions/${submission.submission_id}/events`,
+        payload
+      );
+
+      if (!res.ok) {
+        const isAuthError = await handleAuthError(res);
+        if (!isAuthError) {
+          console.error('[❌ EVENT LOGGING FAILED]', await res.json().catch(() => ({})));
+        }
+      } else {
+        console.log('[✅ EVENT LOGGED]', eventData.event_type);
+      }
+    } catch (error) {
+      console.error('[❌ EVENT LOGGING ERROR]', error.message);
+    }
+  };
+
+  const fetchExam = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await apiGet(`/api/exams/${examId}`);
+      if (!res.ok) {
+        throw new Error("Failed to load exam");
+      }
+      const data = await res.json();
+      setExam(data);
+      setTimeLeft(data.duration_minutes * 60);
+      
+      // Initialize shuffled questions
+      const questions = data.questions || [];
+      let finalQuestions = questions;
+      
+      if (data.shuffle_questions) {
+        finalQuestions = shuffleArray(questions);
+      }
+      
+      setShuffledQuestions(finalQuestions);
+      
+      // Create option mapping if shuffle_options is enabled
+      if (data.shuffle_options) {
+        const mapping = {};
+        finalQuestions.forEach((q) => {
+          const originalOptions = ['a', 'b', 'c', 'd'];
+          const shuffledOptions = shuffleArray(originalOptions);
+          mapping[q.id] = {
+            shuffled: shuffledOptions,
+            displayToActual: Object.fromEntries(
+              shuffledOptions.map((option, idx) => [
+                String.fromCharCode(97 + idx), // a, b, c, d
+                option
+              ])
+            ),
+            actualToDisplay: Object.fromEntries(
+              shuffledOptions.map((option, idx) => [
+                option,
+                String.fromCharCode(97 + idx) // a, b, c, d
+              ])
+            ),
+          };
+        });
+        setOptionMapping(mapping);
+      }
+      
+      await startSubmission();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startSubmission = async () => {
+    try {
+      const res = await apiPost('/api/submissions', { exam_id: examId, student_id: user.id });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        // Display the specific error message (IP Mismatch, Time Window, etc.)
+        const errorMessage = errorData.message || errorData.error || `Access Denied: ${res.status}`;
+        throw new Error(errorMessage);
+      }
+      const data = await res.json();
+      setSubmission(data);
+    } catch (err) {
+      console.error("Submission creation error:", err);
+      setError(err.message);
+    }
+  };
+
+  const handleAnswer = (questionId, displayOption) => {
+    // Don't record answers after submission
+    if (submitted) return;
+    
+    // Convert display option to actual option if shuffled
+    const actualOption = optionMapping[questionId]?.displayToActual[displayOption] || displayOption;
+    
+    setAnswers((prev) => ({ ...prev, [questionId]: actualOption }));
+    setCurrentQuestion(questionId);
+    
+    // ✅ NEW: Calculate time spent on this question
+    const timeSpent = questionStartTimeRef.current 
+      ? Math.floor((Date.now() - questionStartTimeRef.current) / 1000)
+      : 0;
+
+    // ✅ NEW: Log answer saved event
+    logEvent({
+      event_type: 'answer_saved',
+      question_id: questionId,
+      time_spent_seconds: timeSpent,
+      event_details: {
+        selectedOption: actualOption,
+        timeSpentSeconds: timeSpent
+      }
+    });
+  };
+
+  const handleAutoSubmit = async () => {
+    if (submitted) return;
+    
+    // Create a special auto-submit event first
+    await logEvent({
+      event_type: 'suspicious_activity_auto_submit',
+      event_details: { 
+        reason: 'Max strikes reached in AI Extension Detector',
+        tabSwitches: tabSwitchCountRef.current,
+        totalStrikes: aiDetectorRef.current?.strikeCount || 5
+      }
+    });
+
+    // Directly call the final submission logic WITHOUT confirmation
+    await executeFinalSubmission();
+  };
+
+  const handleSubmit = async () => {
+    if (!submission || !submission.submission_id) {
+      alert("Error: Submission was not properly initialized. Please reload the page.");
+      return;
+    }
+    
+    // ✅ PAUSE AI DETECTOR during confirmation dialog to avoid false tab switches
+    const wasActive = aiDetectorRef.current?.isActive;
+    if (aiDetectorRef.current) {
+      aiDetectorRef.current.isActive = false;
+    }
+    
+    const confirmed = confirm("Are you sure you want to submit?");
+    
+    // ✅ RESUME AI DETECTOR after dialog closes
+    if (aiDetectorRef.current) {
+      aiDetectorRef.current.isActive = wasActive;
+    }
+    
+    if (!confirmed) return;
+    
+    await executeFinalSubmission();
+  };
+
+  const executeFinalSubmission = async () => {
+    try {
+      // Submit all answers first to ensure they are saved
+      for (const [questionId, selectedOption] of Object.entries(answers)) {
+        await apiPost(
+          `/api/submissions/${submission.submission_id}/answer`,
+          {
+            question_id: questionId,
+            selected_option: selectedOption,
+          }
+        ).catch(err => console.warn(`Failed to save answer for ${questionId}:`, err));
+      }
+
+      // Finalize submission
+      const res = await apiPost(
+        `/api/submissions/${submission.submission_id}/submit`,
+        {}
+      );
+      
+      if (!res.ok) {
+        const isAuthError = await handleAuthError(res);
+        if (!isAuthError) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error.error || "Failed to finalize submission");
+        }
+        return; // handleAuthError already sets the error state
+      }
+      
+      const result = await res.json();
+      const aiSummary = aiDetectorRef.current?.getSummary();
+      
+      // Log completion event
+      await logEvent({
+        event_type: 'exam_submitted',
+        event_details: {
+          score: result.correct_answers,
+          totalQuestions: result.total_questions,
+          percentage: result.percentage,
+          tabSwitches: tabSwitchCountRef.current,
+          aiDetection: aiSummary
+        }
+      });
+      
+      setSubmitted(true);
+      if (!aiDetectorRef.current?.strikeCount >= 5) {
+        alert(`Exam submitted! Score: ${result.correct_answers}/${result.total_questions}`);
+      }
+    } catch (err) {
+      alert("Error during submission: " + err.message);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  if (loading) return <div className="page-container"><p>Loading exam...</p></div>;
+  if (error && !submission) {
+    const isIpError = error.toLowerCase().includes('ip') || error.toLowerCase().includes('authorized');
+    return (
+      <div className="page-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+        <div style={{ 
+          maxWidth: '500px', 
+          width: '100%', 
+          padding: '60px 40px', 
+          background: '#ffffff',
+          borderRadius: '40px',
+          boxShadow: '0 40px 100px -20px rgba(0,0,0,0.15)',
+          textAlign: 'center',
+          borderTop: isIpError ? '6px solid #fbbf24' : '6px solid #ef4444' 
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>{isIpError ? '🔒' : '🛑'}</div>
+          <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '16px', color: '#111827', fontFamily: 'Outfit, sans-serif' }}>
+            {isIpError ? 'Access Restricted' : 'Unable to Start Exam'}
+          </h2>
+          <p style={{ color: '#4b5563', lineHeight: '1.6', fontSize: '16px', marginBottom: '32px', fontFamily: 'Outfit, sans-serif' }}>
+            {error}
+          </p>
+          <button onClick={() => window.location.href = '/dashboard'} className="btn-primary" style={{ width: '100%', padding: '16px' }}>
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted)
+    return (
+      <div className="page-container">
+        <h1>Exam Submitted!</h1>
+        <p>Your exam has been successfully submitted.</p>
+        <a href="/student/results" className="btn-primary">
+          View Results
+        </a>
+      </div>
+    );
+
+  // Get current question data
+  const currentQuestionData = shuffledQuestions[currentQuestionIndex];
+  const totalQuestions = shuffledQuestions.length;
+  const questionProgress = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+
+  // Handle navigation
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  return (
+    <div className="page-container">
+      {/* 🚀 NEW: Security Modal for Multi-Login detection during exam */}
+      {error && submission && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.8)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div className="animate-pop-in" style={{
+            background: '#ffffff',
+            padding: '50px 40px',
+            borderRadius: '30px',
+            maxWidth: '450px',
+            textAlign: 'center',
+            boxShadow: '0 50px 100px rgba(0,0,0,0.5)',
+            borderTop: '8px solid #f87171'
+          }}>
+            <div style={{ fontSize: '70px', marginBottom: '20px' }}>🔐</div>
+            <h2 style={{ color: '#1f2937', fontSize: '24px', fontWeight: '800', marginBottom: '15px' }}>
+              Session Terminated
+            </h2>
+            <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '30px' }}>
+              {error}
+            </p>
+            <button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="btn-primary"
+              style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: 'bold' }}
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="exam-header">
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1>{exam?.title}</h1>
+          {submission?.isResumed && (
+            <span style={{ 
+              color: '#059669', 
+              background: '#ecfdf5', 
+              padding: '4px 12px', 
+              borderRadius: '20px', 
+              fontSize: '13px', 
+              fontWeight: '600',
+              display: 'inline-block',
+              marginTop: '5px',
+              border: '1px solid #10b981'
+            }}>
+              🔄 Session Resumed from another device
+            </span>
+          )}
+        </div>
+        <div className="exam-timer">
+          <span className={timeLeft < 300 ? "timer-warning" : ""}>
+            ⏱️ Time Left: {formatTime(timeLeft)}
+          </span>
+        </div>
+      </div>
+
+      <div className="exam-progress">
+        <span className="progress-text">Question {questionProgress}</span>
+        <div className="progress-bar-container">
+          <div
+            className="progress-bar-fill"
+            style={{
+              width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
+            }}
+          ></div>
+        </div>
+      </div>
+
+      <div className="questions-container">
+        {currentQuestionData && (
+          <div className="question-card question-card-full">
+            <h3>{currentQuestionData.question_text}</h3>
+            <div className="options">
+              {(() => {
+                const optionList = ['a', 'b', 'c', 'd'];
+                const displayOptions = optionMapping[currentQuestionData.id]?.shuffled || optionList;
+                
+                return displayOptions.map((actualOption, idx) => {
+                  const displayLabel = String.fromCharCode(97 + idx); // a, b, c, d
+                  const optionText = currentQuestionData[`option_${actualOption}`];
+                  const isAnswered = answers[currentQuestionData.id] === actualOption;
+                  
+                  return (
+                    <label key={actualOption} className="option-label">
+                      <input
+                        type="radio"
+                        name={`question_${currentQuestionData.id}`}
+                        value={displayLabel}
+                        checked={isAnswered}
+                        onChange={(e) => handleAnswer(currentQuestionData.id, e.target.value)}
+                        disabled={!!error} // Disable interaction if session invalidated
+                      />
+                      <span className="option-text">
+                        {displayLabel.toUpperCase()}: {optionText}
+                      </span>
+                    </label>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="exam-navigation">
+        <button
+          onClick={goToPreviousQuestion}
+          disabled={currentQuestionIndex === 0 || !!error}
+          className="btn-secondary"
+        >
+          ← Previous
+        </button>
+
+        <div className="question-counter">
+          {currentQuestionIndex + 1} of {totalQuestions}
+        </div>
+
+        {currentQuestionIndex === totalQuestions - 1 ? (
+          <button onClick={handleSubmit} disabled={!!error} className="btn-primary btn-submit">
+            Submit Exam
+          </button>
+        ) : (
+          <button
+            onClick={goToNextQuestion}
+            disabled={currentQuestionIndex === totalQuestions - 1 || !!error}
+            className="btn-secondary"
+          >
+            Next →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
