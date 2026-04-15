@@ -9,92 +9,89 @@
   overflow: hidden;
 }
 
-.login-page::before,
+.login-page::before {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: var(--primary);
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.08;
+  top: -100px;
+  left: -100px;
+  z-index: 0;
+}
+
 .login-page::after {
   content: '';
   position: absolute;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 0;
-  opacity: 0.15;
-  animation: moveBlobs 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
-}
-
-.login-page::before {
-  background: var(--primary);
-  top: -100px;
-  left: -100px;
-}
-
-.login-page::after {
+  width: 400px;
+  height: 400px;
   background: var(--primary-light);
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.06;
   bottom: -100px;
   right: -100px;
-  animation-delay: -10s;
-}
-
-@keyframes moveBlobs {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(100px, 100px) scale(1.2); }
+  z-index: 0;
 }
 
 .login-card {
   width: 100%;
-  max-width: 480px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  max-width: 450px;
+  background: white;
   border-radius: var(--radius-lg);
-  padding: 4rem 3.5rem;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 3.5rem;
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
   position: relative;
-  overflow: hidden;
   z-index: 1;
-  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUpFade {
-  from { opacity: 0; transform: translateY(30px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 3rem;
 }
 
 .logo-container {
-  width: 130px;
-  height: 130px;
+  width: 100px;
+  height: 100px;
   margin: 0 auto 1.5rem;
-  background: white;
+  background: var(--bg-main);
   border-radius: var(--radius-md);
-  padding: 0.5rem;
+  padding: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(175, 12, 62, 0.05);
+  border: 1px solid var(--border);
 }
 
 .login-logo {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  mix-blend-mode: multiply;
-}
-
-.login-header h1 {
-  display: none; /* Hide the fallback title now that we have a logo */
 }
 
 .login-header .subtitle {
+  margin: 0 0 0.75rem 0;
+  color: var(--text-main);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.login-header p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  letter-spacing: -0.01em;
 }
 
 .login-form {
