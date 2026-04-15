@@ -113,33 +113,6 @@ export default function LoginPage({ onLogin }) {
             <a href="/forgot-password" className="forgot-link">Forgot Password?</a>
           </div>
         </form>
-
-        <div className="login-hint">
-          <h4>Demo Credentials:</h4>
-          <div className="credentials">
-            <div className="cred-item">
-              <span className="role">Student:</span>
-              <code>student1 / student123</code>
-            </div>
-            <div className="cred-item">
-              <span className="role">Professor:</span>
-              <code>professor1 / prof123</code>
-            </div>
-            <div className="cred-item">
-              <span className="role">Admin:</span>
-              <code>admin1 / admin123</code>
-            </div>
-          </div>
-        </div>
-
-        <div className="login-footer">
-          <div className="security-badge">
-            <span>🛡️</span> 128-bit SSL Encryption
-          </div>
-          <div className="security-badge">
-            <span>🔐</span> Secure Device Fingerprinted
-          </div>
-        </div>
       </section>
     </main>
   );
